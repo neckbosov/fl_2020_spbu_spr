@@ -1,3 +1,5 @@
+use std::str::*;
+
 use crate::arith::AST::{BinOp, Num};
 use crate::arith::Operator::{Div, Minus, Mult, Plus};
 
@@ -55,11 +57,58 @@ fn parse_sum(s: &str) -> Option<(AST, &str)> {
     }
 }
 
+fn to_postfix_buffered(t: AST, s: &mut String) {
+    match t {
+        Num(x) => s.push_str(&format!("{} ", x)),
+        BinOp(op, l, r) => {
+            to_postfix_buffered(*l, s);
+            to_postfix_buffered(*r, s);
+            s.push(match op {
+                Plus => '+',
+                Minus => '-',
+                Mult => '*',
+                Div => '/'
+            });
+            s.push(' ');
+        }
+    }
+}
+
+fn to_postfix(t: AST) -> String {
+    let mut ans = String::new();
+    to_postfix_buffered(t, &mut ans);
+    ans.pop();
+    ans
+}
+
+fn from_postfix(s: &str) -> Option<AST> {
+    let mut t = vec![];
+    for tok in s.split(' ') {
+        match tok {
+            "+" | "-" | "*" | "/" => {
+                let r = t.pop()?;
+                let l = t.pop()?;
+                t.push(BinOp(match tok {
+                    "+" => Plus,
+                    "-" => Minus,
+                    "/" => Div,
+                    "*" => Mult,
+                    _ => unreachable!()
+                }, l.into(), r.into()))
+            }
+            _ => t.push(Num(tok.parse().ok()?))
+        }
+    }
+    if t.len() == 1 {
+        Some(t.pop().unwrap())
+    } else { None }
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::arith::{parse_mult, parse_num, parse_op, parse_sum};
-    use crate::arith::AST::{BinOp, Num};
-    use crate::arith::Operator::{Div, Minus, Mult, Plus};
+    use crate::arith::*;
+    use crate::arith::AST::*;
+    use crate::arith::Operator::*;
 
     #[test]
     fn test_parse_num() {
@@ -112,5 +161,77 @@ mod tests {
                 "")
             )
         );
+    }
+
+    #[test]
+    fn test_to_postfix() {
+        assert_eq!(to_postfix(Num(123)), "123");
+        assert_eq!(to_postfix(BinOp(Plus, Num(13).into(), Num(42).into())), "13 42 +");
+        assert_eq!(to_postfix(BinOp(
+            Plus,
+            BinOp(Mult, Num(1).into(), Num(2).into()).into(),
+            Num(3).into())), "1 2 * 3 +");
+        assert_eq!(to_postfix(BinOp(
+            Plus,
+            BinOp(
+                Mult,
+                BinOp(
+                    Minus,
+                    Num(1).into(),
+                    Num(2).into(),
+                ).into(),
+                BinOp(
+                    Div,
+                    Num(3).into(),
+                    Num(4).into(),
+                ).into(),
+            ).into(),
+            BinOp(
+                Plus,
+                Num(5).into(),
+                BinOp(
+                    Minus,
+                    Num(6).into(),
+                    Num(7).into(),
+                ).into(),
+            ).into(),
+        )), "1 2 - 3 4 / * 5 6 7 - + +")
+    }
+
+    #[test]
+    fn test_from_postfix() {
+        assert_eq!(from_postfix("123"), Some(Num(123)));
+        assert_eq!(from_postfix("1 2 * 3 +"), Some(BinOp(
+            Plus,
+            BinOp(Mult, Num(1).into(), Num(2).into()).into(),
+            Num(3).into())));
+        assert_eq!(from_postfix("13 42 +"), Some(BinOp(Plus, Num(13).into(), Num(42).into())));
+        assert_eq!(from_postfix("1 2 - 3 4 / * 5 6 7 - + +"), Some(BinOp(
+            Plus,
+            BinOp(
+                Mult,
+                BinOp(
+                    Minus,
+                    Num(1).into(),
+                    Num(2).into(),
+                ).into(),
+                BinOp(
+                    Div,
+                    Num(3).into(),
+                    Num(4).into(),
+                ).into(),
+            ).into(),
+            BinOp(
+                Plus,
+                Num(5).into(),
+                BinOp(
+                    Minus,
+                    Num(6).into(),
+                    Num(7).into(),
+                ).into(),
+            ).into(),
+        )));
+        assert_eq!(from_postfix("1 2 3 +"), None);
+        assert_eq!(from_postfix("1 2 + *"), None);
     }
 }
