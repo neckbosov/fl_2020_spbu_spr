@@ -1,5 +1,3 @@
-use std::str::*;
-
 use crate::arith::AST::{BinOp, Num};
 use crate::arith::Operator::{Div, Minus, Mult, Plus};
 
@@ -82,7 +80,7 @@ fn to_postfix(t: AST) -> String {
 }
 
 fn from_postfix(s: &str) -> Option<AST> {
-    let mut t = vec![];
+    let mut t: Vec<AST> = vec![];
     for tok in s.split(' ') {
         match tok {
             "+" | "-" | "*" | "/" => {
