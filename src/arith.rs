@@ -15,24 +15,47 @@ enum AST {
     BinOp(Operator, Box<AST>, Box<AST>),
 }
 
-fn parse_num(s: &str) -> Option<(AST, &str)> {
-    let pos = s.find(|c: char| !c.is_digit(10)).unwrap_or_else(|| s.len());
-    let ans = s.split_at(pos);
-    Some((Num(ans.0.parse().ok()?), ans.1))
+fn parse_lbr(s: &str) -> Option<&str> {
+    match s.chars().next()? {
+        '(' => Some(s.split_at(1).1),
+        _ => None
+    }
+}
+
+fn parse_rbr(s: &str) -> Option<&str> {
+    match s.chars().next()? {
+        ')' => Some(s.split_at(1).1),
+        _ => None
+    }
+}
+
+fn parse_token(s: &str) -> Option<(AST, &str)> {
+    match parse_lbr(s) {
+        Some(rest) => {
+            let (v, rest1) = parse_expr(rest)?;
+            let rest1 = parse_rbr(rest1)?;
+            Some((v, rest1))
+        }
+        None => {
+            let pos = s.find(|c: char| !c.is_digit(10)).unwrap_or_else(|| s.len());
+            let ans = s.split_at(pos);
+            Some((Num(ans.0.parse().ok()?), ans.1))
+        }
+    }
 }
 
 fn parse_op(s: &str) -> Option<(Operator, &str)> {
     match s.chars().next()? {
-        '*' => Some((Operator::Mult, s.split_at(1).1)),
-        '+' => Some((Operator::Plus, s.split_at(1).1)),
-        '-' => Some((Operator::Minus, s.split_at(1).1)),
-        '/' => Some((Operator::Div, s.split_at(1).1)),
+        '*' => Some((Mult, s.split_at(1).1)),
+        '+' => Some((Plus, s.split_at(1).1)),
+        '-' => Some((Minus, s.split_at(1).1)),
+        '/' => Some((Div, s.split_at(1).1)),
         _ => None
     }
 }
 
 fn parse_mult(s: &str) -> Option<(AST, &str)> {
-    let (l, rest) = parse_num(s)?;
+    let (l, rest) = parse_token(s)?;
     match parse_op(rest) {
         None => Some((l, rest)),
         Some((op, rest1)) if op == Mult || op == Div => {
@@ -53,6 +76,10 @@ fn parse_sum(s: &str) -> Option<(AST, &str)> {
         }
         _ => Some((l, rest))
     }
+}
+
+fn parse_expr(s: &str) -> Option<(AST, &str)> {
+    parse_sum(s)
 }
 
 fn to_postfix_buffered(t: AST, s: &mut String) {
@@ -102,6 +129,27 @@ fn from_postfix(s: &str) -> Option<AST> {
     } else { None }
 }
 
+fn compute(t: AST) -> i32 {
+    match t {
+        Num(x) => x,
+        BinOp(op, l, r) => {
+            let l = compute(*l);
+            let r = compute(*r);
+            match op {
+                Plus => l + r,
+                Minus => l - r,
+                Mult => l * r,
+                Div => l / r
+            }
+        }
+    }
+}
+
+fn evaluate(s: &str) -> Option<i32> {
+    let (ast, rest) = parse_expr(s)?;
+    Some(compute(ast))
+}
+
 #[cfg(test)]
 mod tests {
     use crate::arith::*;
@@ -109,12 +157,12 @@ mod tests {
     use crate::arith::Operator::*;
 
     #[test]
-    fn test_parse_num() {
-        assert_eq!(parse_num("7"), Some((Num(7), "")));
-        assert_eq!(parse_num("12+3"), Some((Num(12), "+3")));
-        assert_eq!(parse_num("007"), Some((Num(7), "")));
-        assert_eq!(parse_num("+3"), None);
-        assert_eq!(parse_num("a"), None);
+    fn test_parse_token() {
+        assert_eq!(parse_token("7"), Some((Num(7), "")));
+        assert_eq!(parse_token("12+3"), Some((Num(12), "+3")));
+        assert_eq!(parse_token("007"), Some((Num(7), "")));
+        assert_eq!(parse_token("+3"), None);
+        assert_eq!(parse_token("a"), None);
     }
 
     #[test]
@@ -231,5 +279,23 @@ mod tests {
         )));
         assert_eq!(from_postfix("1 2 3 +"), None);
         assert_eq!(from_postfix("1 2 + *"), None);
+    }
+
+    #[test]
+    fn test_evaluate() {
+        assert_eq!(evaluate("1"), Some(1));
+        assert_eq!(evaluate("1+2"), Some(1 + 2));
+        assert_eq!(evaluate("2+4+8"), Some(2 + 4 + 8));
+        assert_eq!(evaluate("11+22"), Some(11 + 22));
+        assert_eq!(evaluate("13+42+777"), Some(13 + 42 + 777));
+        assert_eq!(evaluate("31+24+777"), Some(31 + 24 + 777));
+        assert_eq!(evaluate("1+2*3+4"), Some(1 + 2 * 3 + 4));
+        assert_eq!(evaluate("12+23*34+456"), Some(12 + 23 * 34 + 456));
+        assert_eq!(evaluate("1-2*3+4"), Some(1 - (2 * 3 + 4)));
+        assert_eq!(evaluate("1-2-3"), Some(1 - (2 - 3)));
+        assert_eq!(evaluate("4/2-2"), Some(4 / 2 - 2));
+        assert_eq!(evaluate("(1+2)*(3+4)"), Some((1 + 2) * (3 + 4)));
+        assert_eq!(evaluate("12+(23*(34)+456)"), Some(12 + (23 * (34) + 456)));
+        assert_eq!(evaluate("((1-(2*3))+4)"), Some(((1 - (2 * 3)) + 4)));
     }
 }
