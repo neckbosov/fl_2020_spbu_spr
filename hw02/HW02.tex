@@ -35,44 +35,138 @@ initial text={}
 \bigskip
 
 \begin{enumerate}
-  \item Доказать или опровергнуть утверждение: произведение двух минимальных автоматов всегда дает минимальный автомат (рассмотреть случаи для пересечения, объединения и разности языков).
-  \item Для регулярного выражения:
-   \[ (a \mid b)^+ (aa \mid bb \mid abab \mid baba)^* (a \mid b)^+\]
-  Построить эквивалентные:
-  \begin{enumerate}
-    \item Недетерминированный конечный автомат
-    \item Недетерминированный конечный автомат без $\varepsilon$-переходов
-    \item Регулярную грамматику
-    \item Минимальный полный детерминированный конечный автомат
-  \end{enumerate}
-  \item Построить регулярное выражение, распознающее тот же язык, что и автомат:
-  \begin{myauto}
-    \node[state]           (q_2)                {$q_2$};
-    \node[state,initial]   (q_0) [left=of  q_2] {$q_0$};
-    \node[state]           (q_1) [above=of q_2] {$q_1$};
-    \node[state]           (q_3) [below=of q_2] {$q_3$};
-    \node[state,accepting] (q_4) [right=of q_2] {$q_4$};
+	\item Доказать или опровергнуть утверждение: произведение двух минимальных автоматов всегда дает минимальный автомат (рассмотреть случаи для пересечения, объединения и разности языков). 
+	\item Для регулярного выражения:
+	      \[ (a \mid b)^+ (aa \mid bb \mid abab \mid baba)^* (a \mid b)^+\]
+	      Построить эквивалентные:
+	      \begin{enumerate}
+		      \item Недетерминированный конечный автомат
+		            \begin{myauto}
+			            \node[state] 		 (q_2) 			      {$q_2$};
+			            \node[state] 		 (q_1) [left=of  q_2] {$q_1$};
+			            \node[state,initial] (q_0) [left=of  q_1] {$q_0$};
+			            \node[state] 		 (q_3) [right=of q_2] {$q_3$};
+			            \node[state,accepting] 		 (q_4) [right=of q_3] {$q_4$};
+			            \node[state] 		 (q_5) [above=of q_2] {$q_5$};
+			            \node[state] 		 (q_6) [left=of  q_5] {$q_6$};
+			            \node[state] 		 (q_7) [right=of q_5] {$q_7$};
+			            \node[state] 		 (q_8) [below=of q_2] {$q_8$};
+			            \node[state] 		 (q_9) [left=of  q_8] {$q_9$};
+			            \node[state] 		 (q_{10}) [right=of q_8] {$q_{10}$};
+			            \path[->] (q_0) edge node [above] {$a, b$} (q_1)
+			            (q_1) edge [loop above] node [above] {$a, b$} ()
+			            edge node [above] {$\varepsilon$} (q_2)
+			            (q_2) edge [bend left=15] node [left] {$a$} (q_5)
+			            edge [bend right=15] node [left] {$b$} (q_8)
+			            edge node [above] {$\varepsilon$} (q_3)
+			            (q_3) edge node [above] {$a, b$} (q_4)
+			            (q_4) edge [loop above] node [above] {$a, b$} ()
+			            (q_5) edge [bend left=15] node [right] {$a$} (q_2)
+			            edge node [below] {$b$} (q_6)
+			            (q_6) edge [bend left=20] node [above] {$a$} (q_7)
+			            (q_7) edge node [above] {$b$} (q_2)
+			            (q_8) edge [bend right=15] node [right] {$b$} (q_2)
+			            edge node [above] {$a$} (q_9)
+			            (q_9) edge [bend right=20] node [below] {$b$} (q_{10})
+			            (q_{10}) edge node [above] {$a$} (q_2)
+			            ;
+		            \end{myauto}
+		      \item Недетерминированный конечный автомат без $\varepsilon$-переходов
+		            \begin{myauto}
+			            \node[state] 		 (q_2) 			      {$q_2$};
+			            \node[state] 		 (q_1) [left=of  q_2] {$q_1$};
+			            \node[state,initial] (q_0) [left=of  q_1] {$q_0$};
+			            \node[state,accepting] 		 (q_4) [right=of q_2] {$q_4$};
+			            \node[state] 		 (q_5) [above=of q_2] {$q_5$};
+			            \node[state] 		 (q_6) [left=of  q_5] {$q_6$};
+			            \node[state] 		 (q_7) [right=of q_5] {$q_7$};
+			            \node[state] 		 (q_8) [below=of q_2] {$q_8$};
+			            \node[state] 		 (q_9) [left=of  q_8] {$q_9$};
+			            \node[state] 		 (q_{10}) [right=of q_8] {$q_{10}$};
+			            \path[->] (q_0) edge node [above] {$a, b$} (q_1)
+			            (q_1) edge [loop above] node [above] {$a, b$} ()
+						edge node [above] {$a$} (q_5)
+						edge node [above] {$b$} (q_8)
+						edge [bend right=25] node [below] {$a, b$} (q_4)
+			            (q_2) edge [bend left=15] node [left] {$a$} (q_5)
+			            edge [bend right=25] node [left] {$b$} (q_8)
+			            edge node [above] {$a, b$} (q_4)
+			            (q_4) edge [loop above] node [above] {$a, b$} ()
+			            (q_5) edge [bend left=15] node [right] {$a$} (q_2)
+			            edge node [below] {$b$} (q_6)
+			            (q_6) edge [bend left=20] node [above] {$a$} (q_7)
+			            (q_7) edge node [above] {$b$} (q_2)
+			            (q_8) edge [bend right=25] node [right] {$b$} (q_2)
+			            edge node [above] {$a$} (q_9)
+			            (q_9) edge [bend right=20] node [below] {$b$} (q_{10})
+			            (q_{10}) edge node [above] {$a$} (q_2)
+			            ;
+		            \end{myauto}
+		      \item Регулярную грамматику
+		      \item Минимальный полный детерминированный конечный автомат
+		      
+			  Заметим, что по сути центральная часть выражения не играет роли, поэтому легко можем
+			  построить следующий автомат:
+			  \begin{myauto}
+				\node[state] 		 (q_1) 					{$q_1$};
+				\node[state,initial] (q_0) [left=of  q_1] {$q_0$};
+				\node[state,accepting] 		 (q_2) [right=of q_1] {$q_2$};
+				\path[->] (q_0) edge node [above] {$a, b$} (q_1)
+				(q_1) edge node [above] {$a, b$} (q_2)
+				(q_2) edge [loop above] node [above] {$a, b$} ()
+				;
+			  \end{myauto}
+	      \end{enumerate}
+	\item Построить регулярное выражение, распознающее тот же язык, что и автомат:
+	      \begin{myauto}
+		      \node[state]           (q_2)                {$q_2$};
+		      \node[state,initial]   (q_0) [left=of  q_2] {$q_0$};
+		      \node[state]           (q_1) [above=of q_2] {$q_1$};
+		      \node[state]           (q_3) [below=of q_2] {$q_3$};
+		      \node[state,accepting] (q_4) [right=of q_2] {$q_4$};
 
-    \path[->] (q_0) edge [loop above] node [above] {$a, b, c$} ()
-                    edge              node [above] {$a$}       (q_1)
-                    edge              node [above] {$b$}       (q_2)
-                    edge              node [above] {$c$}       (q_3)
-              (q_1) edge [loop above] node [above] {$b, c$}    ()
-                    edge              node [above] {$a$}       (q_4)
-              (q_2) edge [loop above] node [above] {$a, c$}    ()
-                    edge              node [above] {$b$}       (q_4)
-              (q_3) edge [loop above] node [above] {$a, b$}    ()
-                    edge              node [above] {$c$}       (q_4)
-    ;
-  \end{myauto}
-  \item Определить, является ли автоматным язык $\{ \omega \omega^r \mid \omega \in \{ 0, 1 \}^* \}$. Если является --- построить автомат, иначе --- доказать.
-  \item Определить, является ли автоматным язык $\{ u a a v \mid u, v \in \{ a, b \}^* , |u|_b \geq |v|_a \}$. Если является --- построить автомат, иначе --- доказать.
+		      \path[->] (q_0) edge [loop above] node [above] {$a, b, c$} ()
+		      edge              node [above] {$a$}       (q_1)
+		      edge              node [above] {$b$}       (q_2)
+		      edge              node [above] {$c$}       (q_3)
+		      (q_1) edge [loop above] node [above] {$b, c$}    ()
+		      edge              node [above] {$a$}       (q_4)
+		      (q_2) edge [loop above] node [above] {$a, c$}    ()
+		      edge              node [above] {$b$}       (q_4)
+		      (q_3) edge [loop above] node [above] {$a, b$}    ()
+		      edge              node [above] {$c$}       (q_4)
+		      ;
+	      \end{myauto}
+
+	      $(a \mid b \mid c) ^ *((a(b \mid c) ^ *a) \mid (b (a \mid c) ^ * b)
+		      \mid (c (a \mid b) ^ * c))$
+	\item Определить, является ли автоматным язык $\{ \omega \omega^r \mid \omega \in \{ 0, 1 \}^* \}$. Если является --- построить автомат, иначе --- доказать.
+
+	      $L$~--- наш язык. Пусть $L$~--- автоматный. Возьмем $n$ из теоремы о накачке,
+	      $w = 01^{2n}001^{2n}0$.
+	      $w \in L \Rightarrow \exists x,y,z \in \Sigma ^ * :\ xyz=w,\ |xy| \le n$, такие что
+	      $xy ^ k z \in L \forall k$. Рассмотрим два случая.
+	      \begin{enumerate}
+		      \item $x = \emptyset$. Возьмем $k=2$, тогда в строке будет нечетное число нулей $\Rightarrow$
+		            она не будет лежать в $L$.
+		      \item $x \ne \emptyset$. Возьмем $k = 3$. Длина строки останется четной, но, если мы разобьем ее на две половины,
+		            количество нулей в них будет разное (позиция середины увеличилась на $|y|$,
+		            а позиция 2-го нуля --- на $2|y|$, $|y| > 0$ по теореме). Но исходя из построения
+		            слов из $L$ количество нулей в половинах одинаково $\Rightarrow$ противоречие.
+	      \end{enumerate}
+	\item Определить, является ли автоматным язык $\{ u a a v \mid u, v \in \{ a, b \}^* , |u|_b \geq |v|_a \}$. Если является --- построить автомат, иначе --- доказать.
+
+	      Докажем, что $L$ не является автоматным. Пусть он автоматный.
+	      Возьмем $n$ из теоремы о
+	      накачке. $w = b^{n} aa (ba) ^ n$. Возьмем разбиение из теоремы и $k = 0$. Число $b$ слева
+	      от $aa$ уменьшилось $\Rightarrow$ строка теперь не лежит в языке, но автомат ее принимает.
+	      Противоречие.
 \end{enumerate}
 
 \newpage
 
 \begin{center}
-  \Large{Пример применения алгоритма минимизации}
+	\Large{Пример применения алгоритма минимизации}
 \end{center}
 
 \bigskip
@@ -80,30 +174,30 @@ initial text={}
 Минимизируем данный автомат:
 
 \begin{center}
-  \begin{tikzpicture}[> = stealth,node distance=3cm, on grid]
-    \node[state]           (q_2)                      {C};
-    \node[state,initial]   (q_0) [above left=of q_2]  {A};
-    \node[state]           (q_1) [below left=of q_2]  {B};
-    \node[state]           (q_3) [right=of q_2]       {D};
-    \node[state]           (q_4) [above right=of q_3] {E};
-    \node[state,accepting] (q_5) [below right=of q_3] {F};
-    \node[state,accepting] (q_6) [above right=of q_5] {G};
+	\begin{tikzpicture}[> = stealth,node distance=3cm, on grid]
+		\node[state]           (q_2)                      {C};
+		\node[state,initial]   (q_0) [above left=of q_2]  {A};
+		\node[state]           (q_1) [below left=of q_2]  {B};
+		\node[state]           (q_3) [right=of q_2]       {D};
+		\node[state]           (q_4) [above right=of q_3] {E};
+		\node[state,accepting] (q_5) [below right=of q_3] {F};
+		\node[state,accepting] (q_6) [above right=of q_5] {G};
 
-    \path[->] (q_0) edge [bend left=15]  node [right] {$1$} (q_1)
-                    edge                 node [above] {$0$} (q_2)
-              (q_1) edge [bend left=15]  node [left]  {$1$} (q_0)
-                    edge                 node [below] {$0$} (q_2)
-              (q_2) edge [bend right=15] node [below] {$1$} (q_3)
-                    edge [bend left=15]  node [above] {$0$} (q_3)
-              (q_3) edge                 node [below] {$1$} (q_5)
-                    edge                 node [above] {$0$} (q_4)
-              (q_4) edge                 node [above] {$1$} (q_6)
-                    edge                 node [right] {$0$} (q_5)
-              (q_5) edge [loop below]    node         {$1$} ()
-                    edge [loop left]     node         {$0$} ()
-              (q_6) edge                 node [below] {$1$} (q_5)
-                    edge [loop right]    node         {$0$} ();
-  \end{tikzpicture}
+		\path[->] (q_0) edge [bend left=15]  node [right] {$1$} (q_1)
+		edge                 node [above] {$0$} (q_2)
+		(q_1) edge [bend left=15]  node [left]  {$1$} (q_0)
+		edge                 node [below] {$0$} (q_2)
+		(q_2) edge [bend right=15] node [below] {$1$} (q_3)
+		edge [bend left=15]  node [above] {$0$} (q_3)
+		(q_3) edge                 node [below] {$1$} (q_5)
+		edge                 node [above] {$0$} (q_4)
+		(q_4) edge                 node [above] {$1$} (q_6)
+		edge                 node [right] {$0$} (q_5)
+		(q_5) edge [loop below]    node         {$1$} ()
+		edge [loop left]     node         {$0$} ()
+		(q_6) edge                 node [below] {$1$} (q_5)
+		edge [loop right]    node         {$0$} ();
+	\end{tikzpicture}
 \end{center}
 
 Автомат полный, в нем нет недостижимых вершин --- продолжаем.
@@ -111,14 +205,14 @@ initial text={}
 Строим обратное $\delta$ отображение.
 
 \begin{tabular}{c|c|c}
-$\delta^{-1}$ & 0 & 1 \\ \hline
-A & --- & B \\
-B & --- & A \\
-C & A B & --- \\
-D & C & C \\
-E & D & --- \\
-F & E F & D F G \\
-G & G & E
+	$\delta^{-1}$ & 0   & 1     \\ \hline
+	A             & --- & B     \\
+	B             & --- & A     \\
+	C             & A B & ---   \\
+	D             & C   & C     \\
+	E             & D   & ---   \\
+	F             & E F & D F G \\
+	G             & G   & E
 \end{tabular}
 
 Отмечаем в таблице и добавляем в очередь пары состояний, различаемых словом $\varepsilon$: все пары, один элемент которых --- терминальное состояние, а второй --- не терминальное состояние. Для данного автомата это пары
@@ -132,47 +226,47 @@ $(A, F)$ не дает нам новых неэквивалентных пар. 
 Результирующая таблица (заполнен только треугольник, потому что остальное симметрично) и порядок добавления пар в очередь.
 
 \begin{tabular}{c|cc|cc|cc|c}
-& A & B & C & D & E & F & G \\ \hline
-A &&&&&&& \\
-B &&&&&&& \\ \hline
-C & \checkmark & \checkmark &&&&& \\
-D & \checkmark & \checkmark & \checkmark &&&& \\ \hline
-E & \checkmark & \checkmark & \checkmark & \checkmark &&& \\
-F & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark && \\ \hline
-G & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark && \\
+	  & A          & B          & C          & D          & E          & F & G \\ \hline
+	A &            &            &            &            &            &   &   \\
+	B &            &            &            &            &            &   &   \\ \hline
+	C & \checkmark & \checkmark &            &            &            &   &   \\
+	D & \checkmark & \checkmark & \checkmark &            &            &   &   \\ \hline
+	E & \checkmark & \checkmark & \checkmark & \checkmark &            &   &   \\
+	F & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark &   &   \\ \hline
+	G & \checkmark & \checkmark & \checkmark & \checkmark & \checkmark &   &   \\
 \end{tabular}
 
 Очередь:
 
 $
-(A, F), (B, F), (C, F), (D, F), (E,F), (A, G), (B, G), (C, G), (D, G), (E, G),
+	(A, F), (B, F), (C, F), (D, F), (E,F), (A, G), (B, G), (C, G), (D, G), (E, G),
 $
 
 $
-(B, D), (A, D), (A, E), (B, E), (C, E), (C, D), (D, E), (A,C), (B, C))
+	(B, D), (A, D), (A, E), (B, E), (C, E), (C, D), (D, E), (A,C), (B, C))
 $
 
 В таблице выделились классы эквивалентных вершин: $\{A, B\}, \{C\}, \{D\}, \{E\}, \{F,G\}$. Остается только нарисовать результирующий автомат с вершинами-классами. Переходы добавляются тогда, когда из какого-нибудь состояния первого класса есть переход в какое-нибудь состояние второго класса. Минимизированный автомат:
 
 \begin{center}
-  \begin{tikzpicture}[> = stealth,node distance=3cm, on grid]
-    \node[state,initial]   (q_01)                     {AB};
-    \node[state]           (q_2)  [right=of q_01]      {C};
-    \node[state]           (q_3)  [right=of q_2]       {D};
-    \node[state]           (q_4)  [above right=of q_3] {E};
-    \node[state,accepting] (q_56) [below right=of q_3] {FG};
+	\begin{tikzpicture}[> = stealth,node distance=3cm, on grid]
+		\node[state,initial]   (q_01)                     {AB};
+		\node[state]           (q_2)  [right=of q_01]      {C};
+		\node[state]           (q_3)  [right=of q_2]       {D};
+		\node[state]           (q_4)  [above right=of q_3] {E};
+		\node[state,accepting] (q_56) [below right=of q_3] {FG};
 
-    \path[->] (q_01) edge [loop above]    node [above] {$1$} ()
-                     edge                 node [above] {$0$} (q_2)
-              (q_2)  edge [bend right=15] node [below] {$1$} (q_3)
-                     edge [bend left=15]  node [above] {$0$} (q_3)
-              (q_3)  edge                 node [below] {$1$} (q_56)
-                     edge                 node [above] {$0$} (q_4)
-              (q_4)  edge [bend right=15] node [left]  {$1$} (q_56)
-                     edge [bend left=15]  node [right] {$0$} (q_56)
-              (q_56) edge [loop below]    node         {$1$} ()
-                     edge [loop left]     node         {$0$} ();
-  \end{tikzpicture}
+		\path[->] (q_01) edge [loop above]    node [above] {$1$} ()
+		edge                 node [above] {$0$} (q_2)
+		(q_2)  edge [bend right=15] node [below] {$1$} (q_3)
+		edge [bend left=15]  node [above] {$0$} (q_3)
+		(q_3)  edge                 node [below] {$1$} (q_56)
+		edge                 node [above] {$0$} (q_4)
+		(q_4)  edge [bend right=15] node [left]  {$1$} (q_56)
+		edge [bend left=15]  node [right] {$0$} (q_56)
+		(q_56) edge [loop below]    node         {$1$} ()
+		edge [loop left]     node         {$0$} ();
+	\end{tikzpicture}
 \end{center}
 
 \end{document}
