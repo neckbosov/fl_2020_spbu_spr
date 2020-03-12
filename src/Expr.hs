@@ -1,9 +1,9 @@
 module Expr where
 
 import           AST         (AST (..), Operator (..))
-import           Combinators (Parser (..), Result (..), bind', elem', fail',
-                              fmap', satisfy, some', success)
+import           Combinators (Parser (..), Result (..), elem', fail', satisfy, success, symbol)
 import           Data.Char   (digitToInt, isDigit)
+import Control.Applicative
 
 data Associativity
   = LeftAssoc  -- 1 @ 2 @ 3 @ 4 = (((1 @ 2) @ 3) @ 4)
@@ -16,24 +16,38 @@ uberExpr :: Monoid e
          -> Parser e i ast -- парсер для элементарного выражения
          -> (op -> ast -> ast -> ast) -- функция для создания абстрактного синтаксического дерева для бинарного оператора
          -> Parser e i ast
-uberExpr = error "uberExpr undefined"
+uberExpr ops elem creator = foldr f elem ops
+    where
+        f (op, NoAssoc) elem1 = do
+            lhs <- elem1
+            ((\o -> creator o lhs) <$> op <*> elem1) <|> return lhs
+        
+        f (op, assoc) elem1 = do
+            x <- elem1 
+            (foldAst assoc x) <$> many ((,) <$> op <*> elem1)
+
+        foldAst LeftAssoc x = foldl (\lhs (op, rhs) -> creator op lhs rhs) x
+        foldAst RightAssoc x = \ls -> snd $ foldr1 (\(o, lhs) (op, rhs) -> (o, creator op lhs rhs)) ((undefined, x) : ls)
+
+
+plus' = symbol '+' >>= toOperator
+minus' = symbol '-' >>= toOperator
+mult' = symbol '*' >>= toOperator
+div' = symbol '/' >>= toOperator
 
 -- Парсер для выражений над +, -, *, /, ^ (возведение в степень)
 -- с естественными приоритетами и ассоциативностью над натуральными числами с 0.
 -- В строке могут быть скобки
 parseExpr :: Parser String String AST
-parseExpr = error "parseExpr undefined"
+parseExpr = uberExpr [(plus' <|> minus', LeftAssoc), (mult' <|> div', LeftAssoc)] (Num <$> parseNum <|> symbol '(' *> parseExpr <* symbol ')') BinOp
 
 -- Парсер для натуральных чисел с 0
 parseNum :: Parser String String Int
-parseNum = foldl (\acc d -> 10 * acc + digitToInt d) 0 `fmap'` go
-  where
-    go :: Parser String String String
-    go = some' (satisfy isDigit)
+parseNum = foldl (\acc d -> 10 * acc + digitToInt d) 0 <$> some (satisfy isDigit)
 
 -- Парсер для операторов
 parseOp :: Parser String String Operator
-parseOp = elem' `bind'` toOperator
+parseOp = elem' >>= toOperator
 
 -- Преобразование символов операторов в операторы
 toOperator :: Char -> Parser String String Operator
