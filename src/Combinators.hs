@@ -75,3 +75,6 @@ success = pure
 -- Всегда завершается ошибкой
 fail' :: e -> Parser e i a
 fail' = Parser . const . Failure
+
+strEq :: String -> Parser String String String
+strEq = foldr (\c rest -> (:) <$> (symbol c) <*> rest) (success [])

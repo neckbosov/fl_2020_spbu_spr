@@ -45,6 +45,9 @@ parseExpr = uberExpr [(plus' <|> minus', LeftAssoc), (mult' <|> div', LeftAssoc)
 parseNum :: Parser String String Int
 parseNum = foldl (\acc d -> 10 * acc + digitToInt d) 0 <$> some (satisfy isDigit)
 
+parseIdent :: Parser String String String
+parseIdent = error "parseIdent undefined"
+
 -- Парсер для операторов
 parseOp :: Parser String String Operator
 parseOp = elem' >>= toOperator
