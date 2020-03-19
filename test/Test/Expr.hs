@@ -5,7 +5,7 @@ import           Combinators         (Parser (..), Result (..), runParser,
                                       symbol)
 import           Control.Applicative ((<|>))
 import           Expr                (Associativity (..), evaluate, parseExpr,
-                                      parseNum, parseOp, toOperator, uberExpr, parseIdent)
+                                      parseNum, parseOp, toOperator, uberExpr, parseIdent, parseCurOp)
 import           Test.Tasty.HUnit    (Assertion, (@?=), assertBool)
 
 isFailure (Failure _) = True
@@ -68,11 +68,21 @@ unit_parseOp = do
     runParser parseOp "-2" @?= Success "2" Minus
     runParser parseOp "/1" @?= Success "1" Div
     isFailure (runParser parseOp "12") @?= True
+    runParser parseOp "<=2" @?= Success "2" Le 
+    runParser parseOp ">1" @?= Success "1" Gt 
+    runParser parseOp "^&&" @?= Success "&&" Pow 
+    runParser parseOp "//=" @?= Success "/=" Div
+    runParser parseOp "/==" @?= Success "=" Nequal  
+    runParser parseOp "|| True" @?= Success " True" Or  
+    runParser parseOp "&&" @?= Success "" And 
 
 unit_parseExpr :: Assertion
 unit_parseExpr = do
     runParser parseExpr "1*2*3"   @?= Success "" (BinOp Mult (BinOp Mult (Num 1) (Num 2)) (Num 3))
     runParser parseExpr "123"     @?= Success "" (Num 123)
+    runParser parseExpr "-2*-3"   @?= Success "" (BinOp Mult (Num (-2)) (Num (-3)))
+    runParser parseExpr "--3+-----5" @?= Success "" (BinOp Plus (Num 3) (Num (-5)))
+    runParser parseExpr "x<=y+2" @?= Success "" (BinOp Le (Ident "x") (BinOp Plus (Ident "y") (Num 2)))
     runParser parseExpr "abc"     @?= Success "" (Ident "abc")
     runParser parseExpr "1*2+3*4" @?= Success "" (BinOp Plus (BinOp Mult (Num 1) (Num 2)) (BinOp Mult (Num 3) (Num 4)))
     runParser parseExpr "1+2*3+4" @?= Success "" (BinOp Plus (BinOp Plus (Num 1) (BinOp Mult (Num 2) (Num 3))) (Num 4))
@@ -96,10 +106,10 @@ unit_parseExpr = do
     runParser parseExpr "(1==x+2)||3*4<y-5/6&&(7/=z^8)||(id>12)&&abc<=13||xyz>=42" @?=
       runParser parseExpr "(1==(x+2))||(((3*4)<(y-(5/6))&&(7/=(z^8)))||(((id>12)&&(abc<=13))||(xyz>=42)))"
 
-mult  = symbol '*' >>= toOperator
-sum'  = symbol '+' >>= toOperator
-minus = symbol '-' >>= toOperator
-div'  = symbol '/' >>= toOperator
+mult  = parseCurOp "*"
+sum'  = parseCurOp "+"
+minus = parseCurOp "-"
+div'  = parseCurOp "/"
 
 expr1 :: Parser String String AST
 expr1 =
@@ -130,7 +140,7 @@ unit_expr1 = do
 unit_expr2 :: Assertion
 unit_expr2 = do
   runParser expr2 "13" @?= Success "" (Num 13)
-  runParser expr2 "(((1)))" @?= Failure ""
+  runParser expr2 "(((1)))" @?= Failure "Predicate failed"
   runParser expr2 "1+2*3-4/5" @?= Success "" (BinOp Div (BinOp Minus (BinOp Mult (BinOp Plus (Num 1) (Num 2)) (Num 3)) (Num 4)) (Num 5))
   runParser expr2 "1+2+3" @?= Success "" (BinOp Plus (BinOp Plus (Num 1) (Num 2)) (Num 3))
   runParser expr2 "1*2*3" @?= Success "" (BinOp Mult (BinOp Mult (Num 1) (Num 2)) (Num 3))

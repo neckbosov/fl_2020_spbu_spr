@@ -11,7 +11,7 @@ newtype Parser error input result
   = Parser { runParser :: input -> Result error input result }
 
 instance Functor (Parser error input) where
-  fmap f (Parser p) = Parser $ \input -> 
+  fmap f (Parser p) = Parser $ \input ->
       case p input of
           Failure err -> Failure err
           Success rest x -> Success rest $ f x
@@ -19,9 +19,9 @@ instance Functor (Parser error input) where
 instance Applicative (Parser error input) where
   pure a = Parser $ \input -> Success input a
   (Parser p) <*> (Parser q) = Parser $ \input ->
-      case p input of 
+      case p input of
           Failure err -> Failure err
-          Success rest f -> 
+          Success rest f ->
               case q rest of
                   Failure err -> Failure err
                   Success rest2 x -> Success rest2 $ f x
@@ -77,4 +77,4 @@ fail' :: e -> Parser e i a
 fail' = Parser . const . Failure
 
 strEq :: String -> Parser String String String
-strEq = foldr (\c rest -> (:) <$> (symbol c) <*> rest) (success [])
+strEq = foldr (\c rest -> (:) <$> symbol c <*> rest) (success [])
