@@ -1,0 +1,243 @@
+\documentclass[14pt]{extarticle}
+
+\usepackage{cmap}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{graphicx}
+\usepackage{amsthm,amsmath,amssymb}
+\usepackage[russian,colorlinks=true,urlcolor=red,linkcolor=blue]{hyperref}
+\usepackage{enumerate}
+\usepackage{datetime}
+\usepackage{minted}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{color}
+\usepackage{verbatim}
+\usepackage{amsthm,amsfonts,amscd}
+\usepackage{blkarray}
+\usepackage{mathtools}
+\usepackage{xcolor,cancel}
+\usepackage{tikz}
+\usepackage{ifthen}
+\usepackage{setspace}
+\usepackage{epigraph}
+\usepackage{enumitem}
+
+\parskip=0em
+\parindent=0em
+
+\sloppy
+\voffset=-20mm
+\textheight=235mm
+\hoffset=-25mm
+\textwidth=180mm
+\headsep=12pt
+\footskip=20pt
+
+\setcounter{page}{0}
+\pagestyle{empty}
+
+% Основные математические символы
+\newcommand{\N}{\mathbb{N}}   % Natural numbers
+\newcommand{\R}{\mathbb{R}}   % Ratio numbers
+\newcommand{\Z}{\mathbb{Z}}   % Integer numbers
+\def\EPS{\varepsilon}         %
+\def\SO{\Rightarrow}          % =>
+\def\EQ{\Leftrightarrow}      % <=>
+\def\t{\texttt}               %
+\def\O{\mathcal{O}}           %
+\def\NO{\t{\#}}               % #
+\renewcommand{\le}{\leqslant} % <=, beauty
+\renewcommand{\ge}{\geqslant} % >=, beauty
+\def\XOR{\text{ {\raisebox{-2pt}{\ensuremath{\Hat{}}}} }}
+\newcommand{\q}[1]{\langle #1 \rangle}               % <x>
+\newcommand\URL[1]{{\footnotesize{\url{#1}}}}        %
+\newcommand{\sfrac}[2]{{\scriptstyle\frac{#1}{#2}}}  % Очень маленькая дробь
+\newcommand{\mfrac}[2]{{\textstyle\frac{#1}{#2}}}    % Небольшая дробь
+\newcommand{\score}[1]{{\bf\color{red}{(#1)}}}
+
+\DeclareMathOperator\arcsinh{arcsinh}
+\DeclareMathOperator\arccosh{arccosh}
+\DeclareMathOperator\arctanh{arctanh}
+% Отступы
+\def\makeparindent{\hspace*{\parindent}}
+\def\up{\vspace*{-\baselineskip}}
+\def\down{\vspace*{\baselineskip}}
+\def\LINE{\vspace*{-1em}\noindent \underline{\hbox to 1\textwidth{{ } \hfil{ } \hfil{ } }}}
+
+\lhead{Теория формальных языков, весна 2019/20}
+\chead{}
+\rhead{Никита Босов}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\lfoot{}
+\cfoot{\thepage\t{/}\pageref*{LastPage}}
+\rfoot{}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\newenvironment{MyList}[1][4pt]{
+  \begin{enumerate}[1.]
+  \setlength{\parskip}{0pt}
+  \setlength{\itemsep}{#1}
+}{       
+  \end{enumerate}
+}
+\newenvironment{InnerMyList}[1][0pt]{
+  \vspace*{-0.5em}
+  \begin{enumerate}[a)]
+  \setlength{\parskip}{#1}
+  \setlength{\itemsep}{0pt}
+}{
+  \end{enumerate}
+}
+
+\newcommand{\Section}[1]{
+  \refstepcounter{section}
+  \addcontentsline{toc}{section}{\arabic{section}. #1} 
+  %{\LARGE \bf \arabic{section}. #1} 
+  {\LARGE \bf #1} 
+  \vspace*{1em}
+  \makeparindent\unskip
+}
+\newcommand{\Subsection}[1]{
+  \refstepcounter{subsection}
+  \addcontentsline{toc}{subsection}{\arabic{section}.\arabic{subsection}. #1} 
+  {\Large \bf \arabic{section}.\arabic{subsection}. #1} 
+  \vspace*{0.5em}
+  \makeparindent\unskip
+}
+
+% Код с правильными отступами
+\newenvironment{code}{
+  \VerbatimEnvironment
+
+  \vspace*{-0.5em}
+  \begin{minted}{c}{}
+  \end{minted}
+  \vspace*{-0.5em}
+
+}
+
+% Формулы с правильными отступами
+\newenvironment{smallformula}{
+ 
+  \vspace*{-0.8em}
+}{
+  \vspace*{-1.2em}
+  
+}
+\newenvironment{formula}{
+ 
+  \vspace*{-0.4em}
+}{
+  \vspace*{-0.6em}
+  
+}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{brown}{rgb}{0.5,0.5,0}
+\newcommand{\red}[1]{{\color{red}{#1}}}
+\newcommand{\dkgreen}[1]{{\color{dkgreen}{#1}}}
+\makeatletter
+\AddEnumerateCounter{\asbuk}{\russian@alph}{щ}
+\makeatother
+\makeatletter
+\AddEnumerateCounter{\Asbuk}{\russian@Alph}{Щ}
+\makeatother
+
+\begin{document}
+
+\renewcommand{\dateseparator}{--}
+\begin{center}
+    {\Large\bf
+        Второй курс, весенний семестр 2019/20\\
+        Домашнее задание \NO5 \\
+    }
+\end{center}
+
+\vspace{-1em}
+\LINE
+\vspace{1em}
+
+
+\pagestyle{fancy}
+\begin{enumerate}
+    \item Грамматика:
+          \begin{gather*}
+              SEQ \to (INSTRUCTION\ WS^+)^*\\
+              WS \to \textbf{любые пробельные символы и переводы строк}\\
+              SPACE \to \textbf{' '},\ LBR \to \textbf{(},\ RBR \to \textbf{)}\\
+              INSTRUCTION \to IF | ASSIGN | WHILE | READ | WRITE \\
+              BLOCK \to \{ WS^*\ SEQ\ WS^*\}\\
+              IF \to \textbf{if}\ SPACE\ LBR\ EXPR\ RBR \ SPACE?\ BLOCK \\
+              (WS^+\ \textbf{else } \ SPACE?\ BLOCK)?\\
+              ASSIGN \to IDENT\ SPACE^*\ \textbf{=}\ SPACE^*\ EXPR\text{;}\\
+              WHILE \to \textbf{while } SPACE\ LBR\ EXPR\ RBR \ SPACE?\ BLOCK\\
+              READ \to \textbf{read } LBR\ IDENT \ RBR \text{;}\\
+              WRITE \to \textbf{write } LBR\ EXPR \ RBR \text{;}\\
+              EXPR \to OR\_E\\
+              OR\_E \to AND\_E\ |\ AND\_E\ WS^*\ OR\_OP\ WS^*\ OR\_E\\
+              OR\_OP \to \textbf{||}\\
+              AND\_E \to CMP\_E\ |\ CMP\_E\ WS^*\ AND\_OP\ WS^*\ CMP\_E\\
+              AND\_OP \to \textbf{\&\&}\\
+              CMP\_E \to ARITH\_E\ |\ ARITH\_E\ WS^*\ CMP\_OP\ WS^*\ ARITH\_E\\
+              CMP\_OP \to \textbf{==}\ |\ \textbf{!=}\ |\ \textbf{<=}\ |\ \textbf{>=}\ |\
+              \textbf{<}\ |\ \textbf{>}\\
+              ARITH\_E \to SUM\_E\\
+              SUM\_E \to MUL\_E\ |\ SUM\_E\ WS^*\ SUM\_OP\ WS^*\ MUL\_E\\
+              SUM\_OP \to \textbf{+}\ |\ \textbf{-}\\
+              MUL\_E \to POW\_E\ |\ MUL\_E\ WS^*\ MUL\_OP\ WS^*\ POW\_E\\
+              MUL\_OP \to \textbf{*}\ |\ \textbf{/}\\
+              POW\_E \to TERM\ |\ TERM\ WS^*\ POW\_OP\ WS^*\ POW\_E\\
+              POW\_OP \to \textasciicircum\\
+              TERM \to NUM\ |\ IDENT\ |\ -?\ LBR\ EXPR\ RBR\\
+              NUM \to -?(0 | (1..9) (0..9)^*)\\
+              IDENT \to ((a..z) | (A..Z) | \_ ) ((a..z) | (A..Z) | \_ | (0..9)) ^ *
+          \end{gather*}
+
+          Более формально: программа --- последовательность инструкций, разделенных точкой с
+          запятой. Так же есть блоки кода, их разделять точкой с запятой не нужно. Поддерживаются
+          инструкции условного перехода, цикл while, чтение переменных с помощью read и запись с помощью
+          write. Все эти конструкции выглядят так же, как в $C$-подобных языках. Также поддерживаются
+          арифметические и логические выражения с естественными ассоциативностью и приоритетом.
+    \item Действуем последовательно:
+          \begin{gather*}
+              S \to R\ S\ |\ R\\
+              R \to a\ S\ b\ |\ c\ R\ d\ |\ a\ b\ |\ c\ d\ |\ \epsilon\\
+              \\
+              S \to R\ S\ |\ R\\
+              R \to a\ SB\ |\ c\ RD\ |\ a\ b\ |\ c\ d\ |\ \epsilon\\
+              SB \to S\ b\\
+              RD \to R\ d\\
+              \\
+              S \to R\ S\ |\ R\ |\ \epsilon\\
+              R \to a\ SB\ |\ c\ RD\ |\ a\ b\ |\ c\ d\ \\
+              SB \to S\ b\\
+              RD \to R\ d\\
+              \\
+              S \to R\ S\ |\ a\ SB\ |\ c\ RD\ |\ a\ b\ |\ c\ d\ |\ \epsilon\\
+              R \to a\ SB\ |\ c\ RD\ |\ a\ b\ |\ c\ d\ \\
+              SB \to S\ b\\
+              RD \to R\ d\\
+          \end{gather*}
+          \begin{gather*}
+              S \to R\ S\ |\ A\ SB\ |\ C\ RD\ |\ A\ B\ |\ C\ D\ |\ \epsilon\\
+              R \to A\ SB\ |\ C\ RD\ |\ A\ B\ |\ C\ D\ \\
+              SB \to S\ B\\
+              RD \to R\ D\\
+              A \to a\\
+              B \to b\\
+              C \to c\\
+              D \to d
+          \end{gather*}
+    \item Да, является. Грамматика:
+
+          \begin{gather*}
+              S \to aa | ab | bb\\
+              S \to a S b\\
+              S \to aaS\\
+              S \to Sbb
+          \end{gather*}
+\end{enumerate}
+\end{document}
