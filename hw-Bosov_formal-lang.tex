@@ -170,7 +170,7 @@
               SPACE \to \textbf{' '},\ LBR \to \textbf{(},\ RBR \to \textbf{)}\\
               INSTRUCTION \to IF | ASSIGN | WHILE | READ | WRITE \\
               BLOCK \to \{ WS^*\ SEQ\ WS^*\}\\
-              IF \to \textbf{if}\ SPACE\ LBR\ EXPR\ RBR \ SPACE?\ BLOCK \\
+              IF \to \textbf{if}\ SPACE^*\ LBR\ EXPR\ RBR \ SPACE^*\ BLOCK \\
               (WS^+\ \textbf{else } \ SPACE?\ BLOCK)?\\
               ASSIGN \to IDENT\ SPACE^*\ \textbf{=}\ SPACE^*\ EXPR\text{;}\\
               WHILE \to \textbf{while } SPACE\ LBR\ EXPR\ RBR \ SPACE?\ BLOCK\\
@@ -200,31 +200,37 @@
           запятой. Так же есть блоки кода, их разделять точкой с запятой не нужно. Поддерживаются
           инструкции условного перехода, цикл while, чтение переменных с помощью read и запись с помощью
           write. Все эти конструкции выглядят так же, как в $C$-подобных языках. Также поддерживаются
-          арифметические и логические выражения с естественными ассоциативностью и приоритетом.
+          арифметические и логические выражения с естественными ассоциативностью и приоритетом, за исключением
+          унарного минуса, если хотите сделать отрицание выражения, заключите его в скобки.
     \item Действуем последовательно:
           \begin{gather*}
-              S \to R\ S\ |\ R\\
-              R \to a\ S\ b\ |\ c\ R\ d\ |\ a\ b\ |\ c\ d\ |\ \epsilon\\
+              S \to S_0\\
+              S_0 \to R\ S_0\ |\ R\\
+              R \to a\ S_0\ b\ |\ c\ R\ d\ |\ a\ b\ |\ c\ d\ |\ \epsilon\\
               \\
-              S \to R\ S\ |\ R\\
+              S \to S_0\\
+              S_0 \to R\ S_0\ |\ R\\
               R \to a\ SB\ |\ c\ RD\ |\ a\ b\ |\ c\ d\ |\ \epsilon\\
-              SB \to S\ b\\
+              SB \to S_0\ b\\
               RD \to R\ d\\
               \\
-              S \to R\ S\ |\ R\ |\ \epsilon\\
+              S \to S_0\ |\ \epsilon \\
+              S_0 \to R\ S_0\ |\ R\ \\
               R \to a\ SB\ |\ c\ RD\ |\ a\ b\ |\ c\ d\ \\
-              SB \to S\ b\\
+              SB \to S_0\ b\\
               RD \to R\ d\\
               \\
-              S \to R\ S\ |\ a\ SB\ |\ c\ RD\ |\ a\ b\ |\ c\ d\ |\ \epsilon\\
+              S \to S_0\ |\ \epsilon \\
+              S_0 \to R\ S_0\ |\ a\ SB\ |\ c\ RD\ |\ a\ b\ |\ c\ d\\
               R \to a\ SB\ |\ c\ RD\ |\ a\ b\ |\ c\ d\ \\
-              SB \to S\ b\\
+              SB \to S_0\ b\\
               RD \to R\ d\\
           \end{gather*}
           \begin{gather*}
-              S \to R\ S\ |\ A\ SB\ |\ C\ RD\ |\ A\ B\ |\ C\ D\ |\ \epsilon\\
+              S \to S_0\ |\ \epsilon \\
+              S_0 \to R\ S_0\ |\ A\ SB\ |\ C\ RD\ |\ A\ B\ |\ C\ D\\
               R \to A\ SB\ |\ C\ RD\ |\ A\ B\ |\ C\ D\ \\
-              SB \to S\ B\\
+              SB \to S_0\ b\\
               RD \to R\ D\\
               A \to a\\
               B \to b\\
@@ -239,5 +245,10 @@
               S \to aaS\\
               S \to Sbb
           \end{gather*}
+
+          Очевидно что если $m + n$~--- четно, то можно построить нужную последовательность следующим 
+          образом: $(m-n)/2$ раз заменяем по правилу, которое выдает два символа, которого больше, а дальше 
+          некоторое количество раз заменяем по правилу $S \to aSb$. Также понятно, что грамматика поддерживает
+          инвариант $(m + n) \mod 2 = 0$
 \end{enumerate}
 \end{document}
