@@ -38,7 +38,8 @@ instance Show Operator where
   show Le     = "<="
   show And    = "&&"
   show Or     = "||"
-
+  show Not    = "!"
+  
 instance Show AST where
   show  = printf "\n%s" . go 0
     where
@@ -46,6 +47,7 @@ instance Show AST where
         (if n > 0 then printf "%s|_%s" (concat $ replicate (n - 1) "| ") else id) $
         case t of
           BinOp op l r -> printf "%s\n%s\n%s" (show op) (go (ident n) l) (go (ident n) r)
+          UnaryOp op x -> printf "%s\n%s" (show op) (go (ident n) x)
           Ident x -> x
           Num i -> show i
       ident = (+1)
