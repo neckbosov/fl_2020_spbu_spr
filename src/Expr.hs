@@ -22,7 +22,7 @@ uberExpr :: Monoid e
 
 uberExpr ops elem binaryCreator unaryCreator = foldr f elem ops
     where
-        f (op, Unary) elem1 = ((\o x -> unaryCreator o x) <$> op <*> elem1) <|> elem1
+        f (op, Unary) elem1 = (unaryCreator <$> op <*> elem1) <|> elem1
         f (op, Binary NoAssoc) elem1 = do
             lhs <- elem1
             ((`binaryCreator` lhs) <$> op <*> elem1) <|> return lhs
@@ -65,7 +65,10 @@ parseExpr = uberExpr [
     (mult' <|> div', Binary LeftAssoc),
     (minus', Unary),
     (pow', Binary RightAssoc)
-    ] ((Num <$> parsePositiveNum) <|> (Ident <$> parseIdent) <|> symbol '(' *> parseExpr <* symbol ')') BinOp UnaryOp
+    ] ((Num <$> parsePositiveNum) <|> (Ident <$> parseIdent) <|> parseBracketsExpr) BinOp UnaryOp
+
+parseBracketsExpr :: Parser String String AST
+parseBracketsExpr = symbol '(' *> parseExpr <* symbol ')'
 
 -- Парсер для натуральных чисел с 0
 parsePositiveNum :: Parser String String Int
