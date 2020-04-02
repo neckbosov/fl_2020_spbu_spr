@@ -1,7 +1,7 @@
 module LLang where
 
 import AST (AST (..), Operator (..))
-import Combinators (Parser (..), symbol, satisfy, strEq)
+import Combinators (Parser (..), symbol, satisfy, strEq, success)
 import Expr (parseExpr, parseBracketsExpr, parseIdent)
 import Data.Char (isSpace)
 import Control.Applicative
@@ -57,7 +57,7 @@ parseBlock = symbol '{' *> parseWss *> parseSeq <* parseWss <* symbol '}'
 
 parseIf :: Parser String String LAst
 parseIf = strEq "if" *> parseSpaces *> fmap If parseBracketsExpr <* parseWss <*>
-    parseBlock <* parseWss <* strEq "else" <* parseWss <*> parseBlock
+    parseBlock <*> ((parseWss *> strEq "else" *> parseWss *> parseBlock) <|> success Seq {statements = []})
 
 parseWhile :: Parser String String LAst
 parseWhile = strEq "while" *> parseSpaces *> fmap While parseBracketsExpr <* parseWss <*> parseBlock
