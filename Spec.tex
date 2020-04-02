@@ -1,0 +1,67 @@
+\documentclass[14pt]{extarticle}
+
+\usepackage{cmap}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{graphicx}
+\usepackage{amsthm,amsmath,amssymb}
+\usepackage[russian,colorlinks=true,urlcolor=red,linkcolor=blue]{hyperref}
+\usepackage{enumerate}
+\usepackage{datetime}
+\usepackage{minted}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{color}
+\usepackage{verbatim}
+\usepackage{amsthm,amsfonts,amscd}
+\usepackage{blkarray}
+\usepackage{mathtools}
+\usepackage{xcolor,cancel}
+\usepackage{tikz}
+\usepackage{ifthen}
+\usepackage{setspace}
+\usepackage{epigraph}
+\usepackage{enumitem}
+
+\begin{document}
+Грамматика:
+\begin{gather*}
+    SEQ \to (INSTRUCTION\ WS^+)^*\\
+    WS \to \textbf{любые пробельные символы и переводы строк}\\
+    SPACE \to \textbf{' '},\ LBR \to \textbf{(},\ RBR \to \textbf{)}\\
+    INSTRUCTION \to IF | ASSIGN | WHILE | READ | WRITE \\
+    BLOCK \to \{WS ^ *\ SEQ\ WS ^*\}\\
+    IF \to \textbf{if}\ SPACE^*\ LBR\ EXPR\ RBR \ SPACE^*\ BLOCK \\
+    (WS^+\ \textbf{else }\ WS ^* \ BLOCK)?\\
+    ASSIGN \to IDENT\ SPACE^*\ \textbf{=}\ SPACE^*\ EXPR\text{;}\\
+    WHILE \to \textbf{while } SPACE ^ *\ LBR\ EXPR\ RBR \ SPACE?\ BLOCK\\
+    READ \to \textbf{read } LBR\ IDENT \ RBR \text{;}\\
+    WRITE \to \textbf{write } LBR\ EXPR \ RBR \text{;}\\
+    EXPR \to OR\_E\\
+    OR\_E \to AND\_E\ |\ AND\_E\ OR\_OP\ OR\_E\\
+    OR\_OP \to \textbf{||}\\
+    AND\_E \to CMP\_E\ |\ CMP\_E\ AND\_OP\ CMP\_E\\
+    AND\_OP \to \textbf{\&\&}\\
+    CMP\_E \to ARITH\_E\ |\ ARITH\_E\ CMP\_OP\ ARITH\_E\\
+    CMP\_OP \to \textbf{==}\ |\ \textbf{!=}\ |\ \textbf{<=}\ |\ \textbf{>=}\ |\
+    \textbf{<}\ |\ \textbf{>}\\
+    ARITH\_E \to SUM\_E\\
+    SUM\_E \to MUL\_E\ |\ SUM\_E\ SUM\_OP\ MUL\_E\\
+    SUM\_OP \to \textbf{+}\ |\ \textbf{-}\\
+    MUL\_E \to POW\_E\ |\ MUL\_E\ MUL\_OP\ POW\_E\\
+    MUL\_OP \to \textbf{*}\ |\ \textbf{/}\\
+    POW\_E \to TERM\ |\ TERM\ POW\_OP\ POW\_E\\
+    POW\_OP \to \textasciicircum\\
+    TERM \to NUM\ |\ IDENT\ |\ -?\ LBR\ EXPR\ RBR\\
+    NUM \to -?(0 | (1..9) (0..9)^*)\\
+    IDENT \to ((a..z) | (A..Z) | \_ ) ((a..z) | (A..Z) | \_ | (0..9)) ^ *
+\end{gather*}
+\newpage
+Более формально: программа --- последовательность инструкций, разделенных точкой с
+запятой. Так же есть блоки кода, их разделять точкой с запятой не нужно. Поддерживаются
+инструкции условного перехода, цикл while, чтение переменных с помощью read и запись с помощью
+write. Все эти конструкции выглядят так же, как в $C$-подобных языках. Также поддерживаются
+арифметические и логические выражения с естественными ассоциативностью и приоритетом.
+
+\end{document}
