@@ -131,9 +131,10 @@ $IDENT \to ((a..z) | (A..Z) | \_ ) ((a..z) | (A..Z) | \_ | (0..9)) ^ *$
     CMP\_OP \to \textbf{==}\ |\ \textbf{!=}\ |\ \textbf{<=}\ |\ \textbf{>=}\ |\
     \textbf{<}\ |\ \textbf{>}\\
     SUM\_E \to MUL\_E\ |\ SUM\_E\ SUM\_OP\ MUL\_E,\ SUM\_OP \to \textbf{+}\ |\ \textbf{-}\\
-    MUL\_E \to POW\_E\ |\ MUL\_E\ MUL\_OP\ POW\_E,\ MUL\_OP \to \textbf{*}\ |\ \textbf{/}\\
+    MUL\_E \to MINUS\_E\ |\ MUL\_E\ MUL\_OP\ MINUS\_E,\ MUL\_OP \to \textbf{*}\ |\ \textbf{/}\\
+    MINUS\_E \to -? POW\_E
     POW\_E \to TERM\ |\ TERM\ POW\_OP\ POW\_E,\ POW\_OP \to \textasciicircum\\
-    TERM \to NUM\ |\ IDENT\ |\ -?\ LBR\ EXPR\ RBR\\
-    NUM \to -?(0 | (1..9) (0..9)^*)
+    TERM \to NUM\ |\ IDENT\ |\ LBR\ EXPR\ RBR\\
+    NUM \to 0 | (1..9) (0..9)^*
 \end{gather*}
 \end{document}
