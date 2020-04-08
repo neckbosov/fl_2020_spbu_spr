@@ -1,11 +1,12 @@
 module Test.LLang where
 
-import           Test.Tasty.HUnit    (Assertion, (@?=), assertBool)
-import LLang (LAst(..), parseL, Configuration (..), eval, initialConf)
-import AST (AST(..), Operator(..))
-import           Combinators         (Parser (..), Result (..), runParser,
-                                      symbol, strEq)
+import           AST              (AST (..), Operator (..))
+import           Combinators      (Parser (..), Result (..), runParser, strEq,
+                                   symbol)
 import qualified Data.Map         as Map
+import           LLang            (Configuration (..), LAst (..), eval,
+                                   initialConf, parseL)
+import           Test.Tasty.HUnit (Assertion, assertBool, (@?=))
 
 unit_parseL :: Assertion
 unit_parseL = do
@@ -25,7 +26,7 @@ unit_parseL = do
     \   {\n\
     \ x = x+1;\n\
     \  \n\
-    \}" @?= Success "" Seq{statements = [If (BinOp Lt (Ident "x") (Num 22)) 
+    \}" @?= Success "" Seq{statements = [If (BinOp Lt (Ident "x") (Num 22))
     Seq{statements = [Assign "x" (BinOp Plus (Ident "x") (Num 1))]} Seq{statements = []}]}
     runParser parseL "if(x<22) {\n\
     \ x = x+1;\n\
@@ -35,7 +36,7 @@ unit_parseL = do
     \ x=x-1;\n\
     \  \n\
     \  \n\
-    \ }" @?= Success "" Seq{statements = [If (BinOp Lt (Ident "x") (Num 22)) 
+    \ }" @?= Success "" Seq{statements = [If (BinOp Lt (Ident "x") (Num 22))
     Seq{statements = [Assign "x" (BinOp Plus (Ident "x") (Num 1))]} Seq{statements = [Assign "x" (BinOp Minus (Ident "x") (Num 1))]}]}
     runParser parseL "read(X);\n\
     \ if(X>13) {\n\

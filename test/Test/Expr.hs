@@ -2,11 +2,12 @@ module Test.Expr where
 
 import           AST                 (AST (..), Operator (..))
 import           Combinators         (Parser (..), Result (..), runParser,
-                                      symbol, strEq)
+                                      strEq, symbol)
 import           Control.Applicative ((<|>))
-import           Expr                (Associativity (..), evaluate, parseExpr,
-                                      parseNum, parseOp, toOperator, uberExpr, parseIdent, OpType (..))
-import           Test.Tasty.HUnit    (Assertion, (@?=), assertBool)
+import           Expr                (Associativity (..), OpType (..), evaluate,
+                                      parseExpr, parseIdent, parseNum, parseOp,
+                                      toOperator, uberExpr)
+import           Test.Tasty.HUnit    (Assertion, assertBool, (@?=))
 
 isFailure (Failure _) = True
 isFailure  _          = False

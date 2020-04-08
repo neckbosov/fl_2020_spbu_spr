@@ -1,9 +1,10 @@
 module Expr where
 
-import           AST         (AST (..), Operator (..), Subst (..))
-import           Combinators (Parser (..), Result (..), elem', fail', satisfy, success, symbol, strEq)
-import           Data.Char   (digitToInt, isDigit, isAlpha)
-import Control.Applicative
+import           AST                 (AST (..), Operator (..), Subst (..))
+import           Combinators         (Parser (..), Result (..), elem', fail',
+                                      satisfy, strEq, success, symbol)
+import           Control.Applicative
+import           Data.Char           (digitToInt, isAlpha, isDigit)
 
 data Associativity
   = LeftAssoc  -- 1 @ 2 @ 3 @ 4 = (((1 @ 2) @ 3) @ 4)
@@ -94,21 +95,21 @@ parseOp = eq' <|> neq' <|> ge' <|> gt'  <|> le' <|> lt' <|> or' <|> and' <|> plu
 
 -- Преобразование символов операторов в операторы
 toOperator :: String -> Parser String String Operator
-toOperator "+" = success Plus
-toOperator "*" = success Mult
-toOperator "-" = success Minus
-toOperator "/" = success Div
-toOperator "^" = success Pow
+toOperator "+"  = success Plus
+toOperator "*"  = success Mult
+toOperator "-"  = success Minus
+toOperator "/"  = success Div
+toOperator "^"  = success Pow
 toOperator "==" = success Equal
 toOperator "/=" = success Nequal
-toOperator ">" = success Gt
+toOperator ">"  = success Gt
 toOperator ">=" = success Ge
-toOperator "<" = success Lt
+toOperator "<"  = success Lt
 toOperator "<=" = success Le
 toOperator "&&" = success And
 toOperator "||" = success Or
-toOperator "!" = success Not
-toOperator _   = fail' "Failed toOperator"
+toOperator "!"  = success Not
+toOperator _    = fail' "Failed toOperator"
 
 evaluate :: String -> Maybe Int
 evaluate input =

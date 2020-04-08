@@ -1,6 +1,6 @@
 module AST where
 
-import qualified Data.Map as Map
+import qualified Data.Map    as Map
 import           Text.Printf (printf)
 
 data Operator = Plus
@@ -42,6 +42,7 @@ instance Show Operator where
   show And    = "&&"
   show Or     = "||"
   show Not    = "!"
+
 instance Show AST where
   show  = printf "\n%s" . go 0
     where

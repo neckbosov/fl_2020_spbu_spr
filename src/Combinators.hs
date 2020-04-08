@@ -13,7 +13,7 @@ newtype Parser error input result
 instance Functor (Parser error input) where
   fmap f (Parser p) = Parser $ \input ->
       case p input of
-          Failure err -> Failure err
+          Failure err    -> Failure err
           Success rest x -> Success rest $ f x
 
 instance Applicative (Parser error input) where
@@ -23,7 +23,7 @@ instance Applicative (Parser error input) where
           Failure err -> Failure err
           Success rest f ->
               case q rest of
-                  Failure err -> Failure err
+                  Failure err     -> Failure err
                   Success rest2 x -> Success rest2 $ f x
 
 instance Monad (Parser error input) where

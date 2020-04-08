@@ -1,11 +1,12 @@
 module LLang where
 
-import AST (AST (..), Operator (..), Subst (..))
-import Combinators (Parser (..), symbol, satisfy, strEq, success)
-import Expr (parseExpr, parseBracketsExpr, parseIdent)
-import Data.Char (isSpace)
-import Control.Applicative
-import qualified Data.Map as Map
+import           AST                 (AST (..), Operator (..), Subst (..))
+import           Combinators         (Parser (..), satisfy, strEq, success,
+                                      symbol)
+import           Control.Applicative
+import           Data.Char           (isSpace)
+import qualified Data.Map            as Map
+import           Expr                (parseBracketsExpr, parseExpr, parseIdent)
 
 type Expr = AST
 
