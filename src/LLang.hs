@@ -72,63 +72,39 @@ toBool :: Int -> Bool
 toBool n | n /= 0 = True
          | otherwise = False
 
+doBinOp :: Operator -> Int -> Int -> Int
+doBinOp Plus   = (+)
+doBinOp Minus  = (-)
+doBinOp Mult   = (*)
+doBinOp Div    = div
+doBinOp Pow    = (^)
+doBinOp Equal  = \x y -> fromBool $ x == y
+doBinOp Nequal = \x y -> fromBool $ x /= y
+doBinOp Lt     = \x y -> fromBool $ x < y
+doBinOp Le     = \x y -> fromBool $ x <= y
+doBinOp Gt     = \x y -> fromBool $ x > y
+doBinOp Ge     = \x y -> fromBool $ x >= y
+doBinOp And    = \x y -> fromBool $ toBool x && toBool y
+doBinOp Or     = \x y -> fromBool $ toBool x || toBool y
+doBinOp Not    = undefined
+
 computeLExpr :: AST -> Subst -> Maybe Int
 computeLExpr (Num x)   _         = Just x
 computeLExpr (Ident x) s = Map.lookup x s
-computeLExpr (BinOp Plus x y) s  = do
-    lhs <- computeLExpr x s
-    rhs <- computeLExpr y s
-    return $ lhs + rhs
-computeLExpr (BinOp Mult x y) s  = do
-    lhs <- computeLExpr x s
-    rhs <- computeLExpr y s
-    return $ lhs * rhs
-computeLExpr (BinOp Minus x y) s = do
-    lhs <- computeLExpr x s
-    rhs <- computeLExpr y s
-    return $ lhs - rhs
-computeLExpr (BinOp Div x y) s   = do
+computeLExpr (BinOp Div x y) s = do
     lhs <- computeLExpr x s
     rhs <- computeLExpr y s
     True <- return (rhs /= 0)
     return $ lhs `div` rhs
-computeLExpr (BinOp Pow x y) s   = do
+computeLExpr (BinOp Pow x y) s = do
     lhs <- computeLExpr x s
     rhs <- computeLExpr y s
     True <- return (rhs >= 0)
     return $ lhs ^ rhs
-computeLExpr (BinOp Equal x y) s = do
+computeLExpr (BinOp op x y) s = do
     lhs <- computeLExpr x s
     rhs <- computeLExpr y s
-    return $ fromBool (lhs == rhs)
-computeLExpr (BinOp Nequal x y) s = do
-    lhs <- computeLExpr x s
-    rhs <- computeLExpr y s
-    return $ fromBool (lhs /= rhs)
-computeLExpr (BinOp Gt x y) s = do
-    lhs <- computeLExpr x s
-    rhs <- computeLExpr y s
-    return $ fromBool (lhs > rhs)
-computeLExpr (BinOp Ge x y) s = do
-    lhs <- computeLExpr x s
-    rhs <- computeLExpr y s
-    return $ fromBool (lhs >= rhs)
-computeLExpr (BinOp Lt x y) s = do
-    lhs <- computeLExpr x s
-    rhs <- computeLExpr y s
-    return $ fromBool (lhs < rhs)
-computeLExpr (BinOp Le x y) s = do
-    lhs <- computeLExpr x s
-    rhs <- computeLExpr y s
-    return $ fromBool (lhs <= rhs)
-computeLExpr (BinOp And x y) s = do
-    lhs <- computeLExpr x s
-    rhs <- computeLExpr y s
-    return $ fromBool (toBool lhs && toBool rhs)
-computeLExpr (BinOp Or x y) s = do
-    lhs <- computeLExpr x s
-    rhs <- computeLExpr y s
-    return $ fromBool (toBool lhs || toBool rhs)
+    return $ doBinOp op lhs rhs
 computeLExpr (UnaryOp Minus x) s = (\y -> (-y)) <$> computeLExpr x s
 computeLExpr (UnaryOp Not x) s = (\y -> (fromBool . not . toBool) y) <$> computeLExpr x s
 
@@ -156,4 +132,4 @@ eval (Write e) conf = do
 eval (Read v) conf = do
     False <- return $ null (input conf)
     let nsubst = Map.alter ((const . Just . head . input) conf) v (subst conf)
-    return $ Conf nsubst ((tail . input) conf) (output conf) 
+    return $ Conf nsubst ((tail . input) conf) (output conf)
