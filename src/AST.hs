@@ -1,5 +1,6 @@
 module AST where
 
+import qualified Data.Map as Map
 import           Text.Printf (printf)
 
 data Operator = Plus
@@ -17,6 +18,8 @@ data Operator = Plus
               | Or
               | Not
               deriving (Eq)
+
+type Subst = Map.Map String Int
 
 data AST = BinOp Operator AST AST
          | UnaryOp Operator AST
@@ -39,7 +42,6 @@ instance Show Operator where
   show And    = "&&"
   show Or     = "||"
   show Not    = "!"
-  
 instance Show AST where
   show  = printf "\n%s" . go 0
     where

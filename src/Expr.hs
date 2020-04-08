@@ -1,6 +1,6 @@
 module Expr where
 
-import           AST         (AST (..), Operator (..))
+import           AST         (AST (..), Operator (..), Subst (..))
 import           Combinators (Parser (..), Result (..), elem', fail', satisfy, success, symbol, strEq)
 import           Data.Char   (digitToInt, isDigit, isAlpha)
 import Control.Applicative
@@ -12,6 +12,9 @@ data Associativity
 
 data OpType = Binary Associativity
             | Unary
+
+evalExpr :: Subst -> AST -> Maybe Int
+evalExpr = error "evalExpr undefined"
 
 uberExpr :: Monoid e
          => [(Parser e i op, OpType)] -- список операций с их арностью и, в случае бинарных, ассоциативностью
@@ -51,6 +54,7 @@ le' = parseCurOp "<="
 and' = parseCurOp "&&"
 or' = parseCurOp "||"
 not' = parseCurOp "!"
+
 
 -- Парсер для выражений над +, -, *, /, ^ (возведение в степень)
 -- с естественными приоритетами и ассоциативностью над натуральными числами с 0.
