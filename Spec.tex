@@ -40,7 +40,7 @@
 
 $PROGRAM \to SEQ$
 
-$SEQ \to (INSTRUCTION\ WS^+)^*$
+$SEQ \to (INSTRUCTION\ WS^*)^*$
 
 $INSTRUCTION \to IF | ASSIGN | WHILE | READ | WRITE$
 
@@ -62,7 +62,7 @@ $INSTRUCTION \to IF | ASSIGN | WHILE | READ | WRITE$
 
           $IF \to \textit{if}\ SPACE^*\ LBR\ EXPR\ RBR \ SPACE^*\ BLOCK$
 
-          $(WS^+\ \textit{else }\ WS ^* \ BLOCK)?$
+          $(WS^*\ \textit{else }\ WS ^* \ BLOCK)?$
 
     \item Цикл \textit{while}. Записывается с помощью ключевого слова \textit{while}, отделенное
           произвольным количеством пробелов,за которым в круглых
