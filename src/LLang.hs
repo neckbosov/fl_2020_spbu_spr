@@ -4,6 +4,7 @@ import           AST                 (AST (..), Operator (..), Subst (..))
 import           Combinators         (Parser (..), satisfy, strEq, success,
                                       symbol)
 import           Control.Applicative
+import Control.Monad
 import           Data.Char           (isSpace)
 import qualified Data.Map            as Map
 import           Expr                (parseBracketsExpr, parseExpr, parseIdent)
@@ -94,12 +95,12 @@ computeLExpr (Ident x) s = Map.lookup x s
 computeLExpr (BinOp Div x y) s = do
     lhs <- computeLExpr x s
     rhs <- computeLExpr y s
-    True <- return (rhs /= 0)
+    guard (rhs /= 0)
     return $ lhs `div` rhs
 computeLExpr (BinOp Pow x y) s = do
     lhs <- computeLExpr x s
     rhs <- computeLExpr y s
-    True <- return (rhs >= 0)
+    guard (rhs >= 0)
     return $ lhs ^ rhs
 computeLExpr (BinOp op x y) s = do
     lhs <- computeLExpr x s
@@ -115,13 +116,11 @@ eval :: LAst -> Configuration -> Maybe Configuration
 eval (Seq ls) conf = foldl (\c ast -> (c >>= eval ast)) (Just conf) ls
 eval (If cond thn els) conf = do
     c <- computeLExpr cond (subst conf)
-    res <- if toBool c then eval thn conf else eval els conf
-    return res
+    if toBool c then eval thn conf else eval els conf
 eval ast@(While cond body) conf = do
     c <- computeLExpr cond (subst conf)
     let nconf = if toBool c then eval body conf else Nothing
-    res <- (nconf >>= eval ast) <|> Just conf
-    return res
+    (nconf >>= eval ast) <|> return conf
 eval (Assign v e) conf = do
     val <- computeLExpr e (subst conf)
     let nsubst = Map.alter ((const . Just) val) v (subst conf)
@@ -130,6 +129,6 @@ eval (Write e) conf = do
     val <- computeLExpr e (subst conf)
     return $ Conf (subst conf) (input conf) (val : output conf)
 eval (Read v) conf = do
-    False <- return $ null (input conf)
+    guard (not $ null (input conf))
     let nsubst = Map.alter ((const . Just . head . input) conf) v (subst conf)
     return $ Conf nsubst ((tail . input) conf) (output conf)
