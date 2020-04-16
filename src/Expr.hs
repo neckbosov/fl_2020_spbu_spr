@@ -1,8 +1,8 @@
 module Expr where
 
 import           AST                 (AST (..), Operator (..), Subst (..))
-import           Combinators         (Parser (..), Result (..), elem', fail',
-                                      satisfy, strEq, success, symbol, stream)
+import           Combinators         (Parser (..), Result (..), fail', word,
+                                      satisfy, success, symbol, stream, runParser)
 import           Control.Applicative
 import           Data.Char           (digitToInt, isAlpha, isDigit)
 
@@ -39,7 +39,7 @@ uberExpr ops elem binaryCreator unaryCreator = foldr f elem ops
         foldAst RightAssoc x = \ls -> snd $ foldr1 (\(o, lhs) (op, rhs) -> (o, binaryCreator op lhs rhs)) ((undefined, x) : ls)
 
 parseCurOp :: String -> Parser String String Operator
-parseCurOp op = strEq op >>= toOperator
+parseCurOp op = word op >>= toOperator
 
 plus' = parseCurOp "+"
 minus' = parseCurOp "-"
@@ -70,8 +70,13 @@ parseExpr = uberExpr [
     (mult' <|> div', Binary LeftAssoc),
     (minus', Unary),
     (pow', Binary RightAssoc)
-    ] ((Num <$> parseNum) <|> (Ident <$> parseIdent) <|> parseBracketsExpr) BinOp UnaryOp
+    ] ((Num <$> parseNum) <|> parseFunctionCall <|> (Ident <$> parseIdent) <|> parseBracketsExpr) BinOp UnaryOp
 
+parseFunctionCall :: Parser String String AST
+parseFunctionCall = FunctionCall <$> parseIdent <* symbol '(' <*> parseArgs <* symbol ')'
+    where
+        parseArgs = (((:) <$> parseExpr <*> many (symbol ',' *> parseExpr)) <|> success [])
+        
 parseBracketsExpr :: Parser String String AST
 parseBracketsExpr = symbol '(' *> parseExpr <* symbol ')'
 

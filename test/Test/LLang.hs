@@ -1,7 +1,7 @@
 module Test.LLang where
 
 import           AST              (AST (..), Operator (..))
-import           Combinators      (Parser (..), Result (..), runParser, strEq,
+import           Combinators      (Parser (..), Result (..), runParser, word,
                                    symbol, toStream)
 import qualified Data.Map         as Map
 import           Debug.Trace      (trace)

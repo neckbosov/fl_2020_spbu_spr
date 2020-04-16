@@ -1,15 +1,15 @@
 module LLang where
 
 import           AST                 (AST (..), Operator (..), Subst (..))
-import           Combinators         (Parser (..), satisfy, strEq, success,
-                                      symbol)
+import           Combinators         (Parser (..), satisfy, success, symbol,
+                                      word)
 import           Control.Applicative
-import Control.Monad
+import           Control.Monad
 import           Data.Char           (isSpace)
-import           Data.List   (intercalate)
+import           Data.List           (intercalate)
 import qualified Data.Map            as Map
 import           Expr                (parseBracketsExpr, parseExpr, parseIdent)
-import           Text.Printf (printf)
+import           Text.Printf         (printf)
 
 type Expr = AST
 
@@ -31,6 +31,15 @@ data LAst
   | Seq { statements :: [LAst] }
   | Return { expr :: Expr }
   deriving (Eq)
+
+parseProg :: Parser String String Program
+parseProg = Program <$> many (parseDef <* parseWss) <*> parseL
+
+parseDef :: Parser String String Function
+parseDef = word "fun" *> parseSpaces *>
+    (Function <$> parseIdent <* symbol '(' <*> parseArgs <* symbol ')' <* parseWss <*> parseBlock)
+    where
+        parseArgs = ((:) <$> parseIdent <*> many (symbol ',' *> parseWss *> parseIdent)) <|> success []
 
 parseL :: Parser String String LAst
 parseL = parseSeq
@@ -54,23 +63,26 @@ parseBlock :: Parser String String LAst
 parseBlock = symbol '{' *> parseWss *> parseSeq <* parseWss <* symbol '}'
 
 parseIf :: Parser String String LAst
-parseIf = strEq "if" *> parseSpaces *> fmap If parseBracketsExpr <* parseWss <*>
-    parseBlock <*> ((parseWss *> strEq "else" *> parseWss *> parseBlock) <|> success Seq {statements = []})
+parseIf = word "if" *> parseSpaces *> fmap If parseBracketsExpr <* parseWss <*>
+    parseBlock <*> ((parseWss *> word "else" *> parseWss *> parseBlock) <|> success Seq {statements = []})
 
 parseWhile :: Parser String String LAst
-parseWhile = strEq "while" *> parseSpaces *> fmap While parseBracketsExpr <* parseWss <*> parseBlock
+parseWhile = word "while" *> parseSpaces *> fmap While parseBracketsExpr <* parseWss <*> parseBlock
 
 parseAssign :: Parser String String LAst
 parseAssign = Assign <$> parseIdent <* parseSpaces <* symbol '=' <* parseSpaces <*> parseExpr <* symbol ';'
 
 parseRead :: Parser String String LAst
-parseRead = strEq "read(" *> fmap Read parseIdent <* symbol ')' <* symbol ';'
+parseRead = word "read(" *> fmap Read parseIdent <* symbol ')' <* symbol ';'
 
 parseWrite :: Parser String String LAst
-parseWrite = strEq "write" *> fmap Write parseBracketsExpr <* symbol ';'
+parseWrite = word "write" *> fmap Write parseBracketsExpr <* symbol ';'
+
+parseReturn :: Parser String String LAst
+parseReturn = word "return" *> parseWss *> (Return <$> parseExpr)
 
 parseInstruction :: Parser String String LAst
-parseInstruction = parseAssign <|> parseIf <|> parseWhile <|> parseRead <|> parseWrite
+parseInstruction = parseAssign <|> parseIf <|> parseWhile <|> parseRead <|> parseWrite <|> parseReturn
 
 fromBool :: Bool -> Int
 fromBool True  = 1
@@ -96,31 +108,26 @@ doBinOp And    = \x y -> fromBool $ toBool x && toBool y
 doBinOp Or     = \x y -> fromBool $ toBool x || toBool y
 doBinOp Not    = undefined
 
-computeLExpr :: AST -> Subst -> Maybe Int
-computeLExpr (Num x)   _         = Just x
-computeLExpr (Ident x) s = Map.lookup x s
-computeLExpr (BinOp Div x y) s = do
-    lhs <- computeLExpr x s
-    rhs <- computeLExpr y s
+evalExpr :: Subst -> AST -> Maybe Int
+evalExpr _ (Num x)          = Just x
+evalExpr s (Ident x) = Map.lookup x s
+evalExpr s (BinOp Div x y) = do
+    lhs <- evalExpr s x
+    rhs <- evalExpr s y
     guard (rhs /= 0)
     return $ lhs `div` rhs
-computeLExpr (BinOp Pow x y) s = do
-    lhs <- computeLExpr x s
-    rhs <- computeLExpr y s
+evalExpr s (BinOp Pow x y) = do
+    lhs <- evalExpr s x
+    rhs <- evalExpr s y
     guard (rhs >= 0)
     return $ lhs ^ rhs
-computeLExpr (BinOp op x y) s = do
-    lhs <- computeLExpr x s
-    rhs <- computeLExpr y s
+evalExpr s (BinOp op x y) = do
+    lhs <- evalExpr s x
+    rhs <- evalExpr s y
     return $ doBinOp op lhs rhs
-computeLExpr (UnaryOp Minus x) s = (\y -> (-y)) <$> computeLExpr x s
-computeLExpr (UnaryOp Not x) s = (\y -> (fromBool . not . toBool) y) <$> computeLExpr x s
-
-parseDef :: Parser String String Function
-parseDef = error "parseDef undefined"
-
-parseProg :: Parser String String Prog
-parseProg = error "parseProg undefined"
+evalExpr s (UnaryOp Minus x) = (\y -> (-y)) <$> evalExpr s x
+evalExpr s (UnaryOp Not x) = (\y -> (fromBool . not . toBool) y) <$> evalExpr s x
+evalExpr _ _ = Nothing
 
 initialConf :: [Int] -> Configuration
 initialConf input = Conf Map.empty input []
@@ -128,18 +135,18 @@ initialConf input = Conf Map.empty input []
 eval :: LAst -> Configuration -> Maybe Configuration
 eval (Seq ls) conf = foldl (\c ast -> (c >>= eval ast)) (Just conf) ls
 eval (If cond thn els) conf = do
-    c <- computeLExpr cond (subst conf)
+    c <- evalExpr (subst conf) cond
     if toBool c then eval thn conf else eval els conf
 eval ast@(While cond body) conf = do
-    c <- computeLExpr cond (subst conf)
+    c <- evalExpr (subst conf) cond
     let nconf = if toBool c then eval body conf else Nothing
     (nconf >>= eval ast) <|> return conf
 eval (Assign v e) conf = do
-    val <- computeLExpr e (subst conf)
+    val <- evalExpr (subst conf) e
     let nsubst = Map.alter ((const . Just) val) v (subst conf)
     return $ Conf nsubst (input conf) (output conf)
 eval (Write e) conf = do
-    val <- computeLExpr e (subst conf)
+    val <- evalExpr (subst conf) e
     return $ Conf (subst conf) (input conf) (val : output conf)
 eval (Read v) conf = do
     guard (not $ null (input conf))
