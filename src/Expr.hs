@@ -1,11 +1,10 @@
 module Expr where
 
 import           AST                 (AST (..), Operator (..), Subst (..))
-import           Combinators         (Parser (..), Result (..), fail',
-                                      runParser, satisfy, stream, success)
+import           Combinators         (Parser (..), Result (..), elem', fail',
+                                      satisfy, strEq, success, symbol, stream)
 import           Control.Applicative
-import           Data.Char           (digitToInt, isDigit)
-import qualified Data.Map            as Map
+import           Data.Char           (digitToInt, isAlpha, isDigit)
 
 data Associativity
   = LeftAssoc  -- 1 @ 2 @ 3 @ 4 = (((1 @ 2) @ 3) @ 4)
@@ -24,16 +23,59 @@ uberExpr :: Monoid e
          -> (op -> ast -> ast -> ast) -- конструктор узла дерева для бинарной операции
          -> (op -> ast -> ast)        -- конструктор узла для унарной операции
          -> Parser e i ast
-uberExpr = error "uberExpr undefined"
+
+uberExpr ops elem binaryCreator unaryCreator = foldr f elem ops
+    where
+        f (op, Unary) elem1 = (unaryCreator <$> op <*> elem1) <|> elem1
+        f (op, Binary NoAssoc) elem1 = do
+            lhs <- elem1
+            ((`binaryCreator` lhs) <$> op <*> elem1) <|> return lhs
+
+        f (op, Binary assoc) elem1 = do
+            x <- elem1
+            foldAst assoc x <$> many ((,) <$> op <*> elem1)
+
+        foldAst LeftAssoc x = foldl (\lhs (op, rhs) -> binaryCreator op lhs rhs) x
+        foldAst RightAssoc x = \ls -> snd $ foldr1 (\(o, lhs) (op, rhs) -> (o, binaryCreator op lhs rhs)) ((undefined, x) : ls)
+
+parseCurOp :: String -> Parser String String Operator
+parseCurOp op = strEq op >>= toOperator
+
+plus' = parseCurOp "+"
+minus' = parseCurOp "-"
+mult' = parseCurOp "*"
+div' = parseCurOp "/"
+pow' = parseCurOp "^"
+eq' = parseCurOp "=="
+neq' = parseCurOp "/="
+gt' = parseCurOp ">"
+ge' = parseCurOp ">="
+lt' = parseCurOp "<"
+le' = parseCurOp "<="
+and' = parseCurOp "&&"
+or' = parseCurOp "||"
+not' = parseCurOp "!"
 
 
 -- Парсер для выражений над +, -, *, /, ^ (возведение в степень)
 -- с естественными приоритетами и ассоциативностью над натуральными числами с 0.
 -- В строке могут быть скобки
 parseExpr :: Parser String String AST
-parseExpr = error "parseExpr undefined"
+parseExpr = uberExpr [
+    (or', Binary RightAssoc),
+    (and', Binary RightAssoc),
+    (not', Unary),
+    (eq' <|> neq' <|> ge' <|> gt' <|> le' <|> lt' , Binary NoAssoc),
+    (plus' <|> minus', Binary LeftAssoc),
+    (mult' <|> div', Binary LeftAssoc),
+    (minus', Unary),
+    (pow', Binary RightAssoc)
+    ] ((Num <$> parseNum) <|> (Ident <$> parseIdent) <|> parseBracketsExpr) BinOp UnaryOp
 
--- Парсер для целых чисел
+parseBracketsExpr :: Parser String String AST
+parseBracketsExpr = symbol '(' *> parseExpr <* symbol ')'
+
+-- Парсер для целых неотрицательных чисел
 parseNum :: Parser String String Int
 parseNum = foldl (\acc d -> 10 * acc + digitToInt d) 0 <$> go
   where
@@ -41,13 +83,38 @@ parseNum = foldl (\acc d -> 10 * acc + digitToInt d) 0 <$> go
     go = some (satisfy isDigit)
 
 parseNegNum :: Parser String String Int
-parseNegNum = error "parseNegNum undefined"
+parseNegNum = ((\ls x -> x * (-1) ^ length ls) <$> many (symbol '-')) <*> parseNum
+
+identSym :: Parser String String Char
+identSym = satisfy isAlpha <|> symbol '_' <|> satisfy isDigit
 
 parseIdent :: Parser String String String
-parseIdent = error "parseIdent undefined"
+parseIdent = (:) <$> (satisfy isAlpha <|> symbol '_') <*> many identSym
+
+-- Парсер для операторов
+parseOp :: Parser String String Operator
+parseOp = eq' <|> neq' <|> ge' <|> gt'  <|> le' <|> lt' <|> or' <|> and' <|> plus' <|> minus' <|> mult' <|> div' <|> pow'
+
+-- Преобразование символов операторов в операторы
+toOperator :: String -> Parser String String Operator
+toOperator "+"  = success Plus
+toOperator "*"  = success Mult
+toOperator "-"  = success Minus
+toOperator "/"  = success Div
+toOperator "^"  = success Pow
+toOperator "==" = success Equal
+toOperator "/=" = success Nequal
+toOperator ">"  = success Gt
+toOperator ">=" = success Ge
+toOperator "<"  = success Lt
+toOperator "<=" = success Le
+toOperator "&&" = success And
+toOperator "||" = success Or
+toOperator "!"  = success Not
+toOperator _    = fail' "Failed toOperator"
 
 evaluate :: String -> Maybe Int
-evaluate input = do
+evaluate input =
   case runParser parseExpr input of
     Success rest ast | null (stream rest) -> return $ compute ast
     _                                     -> Nothing

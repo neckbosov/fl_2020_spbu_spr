@@ -35,16 +35,26 @@ incrPos :: InputStream a -> InputStream a
 incrPos (InputStream str pos) = InputStream str (pos + 1)
 
 instance Functor (Parser error input) where
-  fmap = error "fmap not implemented"
+  fmap f (Parser p) = Parser $ \input ->
+      case p input of
+          Failure err    -> Failure err
+          Success rest x -> Success rest $ f x
 
 instance Applicative (Parser error input) where
-  pure = error "pure not implemented"
-  (<*>) = error "<*> not implemented"
+  pure a = Parser $ \input -> Success input a
+  (Parser p) <*> (Parser q) = Parser $ \input ->
+      case p input of
+          Failure err -> Failure err
+          Success rest f ->
+              case q rest of
+                  Failure err     -> Failure err
+                  Success rest2 x -> Success rest2 $ f x
 
 instance Monad (Parser error input) where
-  return = error "return not implemented"
-
-  (>>=) = error ">>= not implemented"
+  (Parser p) >>= f = Parser $ \input ->
+      case p input of
+        Success i r -> runParser (f r) i
+        Failure e   -> Failure e
 
 instance Monoid error => Alternative (Parser error input) where
   empty = Parser $ \input -> Failure [makeError mempty (curPos input)]
@@ -76,6 +86,13 @@ infixl 1 <?>
       Failure err -> Failure $ mergeErrors [makeError msg (maximum $ map pos err)] err
       x -> x
 
+-- Принимает последовательность элементов, разделенных разделителем
+-- Первый аргумент -- парсер для разделителя
+-- Второй аргумент -- парсер для элемента
+-- В последовательности должен быть хотя бы один элемент
+sepBy1 :: Monoid e => Parser e i sep -> Parser e i a -> Parser e i [a]
+sepBy1 sep elem = (:) <$> elem <*> (many (sep *> elem))
+
 -- Проверяет, что первый элемент входной последовательности -- данный символ
 symbol :: Char -> Parser String String Char
 symbol c = ("Expected symbol: " ++ show c) <?> satisfy (== c)
@@ -96,7 +113,7 @@ epsilon = success ()
 
 -- Всегда завершается успехом, вход не читает, возвращает данное значение
 success :: a -> Parser e i a
-success a = Parser $ \input -> Success input a
+success = pure
 
 -- Всегда завершается ошибкой
 fail' :: e -> Parser e i a
@@ -115,3 +132,6 @@ instance Show (ErrorMsg String) where
 instance (Show input, Show result) => Show (Result String input result) where
   show (Failure e) = "Parsing failed\n" ++ unlines (map show e)
   show (Success i r) = "Parsing succeeded!\nResult:\n" ++ show r ++ "\nSuffix:\t" ++ show i
+
+strEq :: String -> Parser String String String
+strEq = foldr (\c rest -> (:) <$> symbol c <*> rest) (success [])

@@ -1,0 +1,140 @@
+\documentclass[14pt]{extarticle}
+
+\usepackage{cmap}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{graphicx}
+\usepackage{amsthm,amsmath,amssymb}
+\usepackage[russian,colorlinks=true,urlcolor=red,linkcolor=blue]{hyperref}
+\usepackage{enumerate}
+\usepackage{datetime}
+\usepackage{minted}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{color}
+\usepackage{verbatim}
+\usepackage{amsthm,amsfonts,amscd}
+\usepackage{blkarray}
+\usepackage{mathtools}
+\usepackage{xcolor,cancel}
+\usepackage{tikz}
+\usepackage{ifthen}
+\usepackage{setspace}
+\usepackage{epigraph}
+\usepackage{enumitem}
+
+\parskip=0em
+\parindent=0em
+
+\sloppy
+\voffset=-35mm
+\textheight=235mm
+\hoffset=-15mm
+\textwidth=180mm
+\headsep=12pt
+\footskip=20pt
+
+\begin{document}
+Программа --- последовательность инструкций
+
+$PROGRAM \to SEQ$
+
+$SEQ \to (INSTRUCTION\ WS^*)^*$
+
+$INSTRUCTION \to IF | ASSIGN | WHILE | READ | WRITE$
+
+Есть 5 типов инструкций:
+\begin{enumerate}
+    \item Условный переход. Записывается с помощью ключевого слова \textit{if}, отделенное
+          произвольным количеством пробелов, за которым в круглых
+          скобках следует условие в виде выражения. Далее следует блок кода, выполняющийся если условие
+          в скобках истинно. Перед блоком также может быть произвольное количество пробелов.
+
+          Блок кода --- последовательность инструкций, заключенная в фигурные скобки, после
+          открывающей и перед закрывающей может быть произвольное количество пробельных символов.
+
+          $BLOCK \to \{WS ^ *\ SEQ\ WS ^*\}$
+
+          Также после этой закрывающей скобки может быть ключевое слово \textit{else}, отделенное
+          произвольным количеством пробелов, после которого через произвольное количество пробелов
+          следует блок кода, который выполняется если условие ложно.
+
+          $IF \to \textit{if}\ SPACE^*\ LBR\ EXPR\ RBR \ SPACE^*\ BLOCK$
+
+          $(WS^*\ \textit{else }\ WS ^* \ BLOCK)?$
+
+    \item Цикл \textit{while}. Записывается с помощью ключевого слова \textit{while}, отделенное
+          произвольным количеством пробелов,за которым в круглых
+          скобках следует условие в виде выражения. Далее следует блок кода, выполняющийся пока условие
+          в скобках истинно. Перед блоком также может быть произвольное количество пробелов.
+
+          $WHILE \to \textit{while } SPACE ^ *\ LBR\ EXPR\ RBR \ SPACE ^ *\ BLOCK$
+
+    \item Присваивание. Записывается как идентификатор, затем произвольное количество пробелов, знак
+          равенства, затем выражение, затем точка с запятой. Описание идентификаторов и выражения ниже.
+
+          $ASSIGN \to IDENT\ SPACE^*\ \textbf{=}\ SPACE^*\ EXPR\text{;}$
+
+    \item Чтение переменной. Записывается как \textit{read}, затем в скобках пишется идентификатор, в
+          конце точка с запятой.
+
+          $READ \to \textit{read } LBR\ IDENT \ RBR \text{;}$
+
+    \item Вывод значения выражения. Записывается как \textit{write}, затем в скобках выражение, в
+          конце точка с запятой.
+
+          $WRITE \to \textit{write } LBR\ EXPR \ RBR \text{;}$
+\end{enumerate}
+Идентификатор начинается в буквы латинского алфавита или подчеркивания. далее следует произвольное количество
+букв. цифр и знаков нижнего подчеркивания.
+
+$IDENT \to ((a..z) | (A..Z) | \_ ) ((a..z) | (A..Z) | \_ | (0..9)) ^ *$
+
+Выражения конструируются из чисел, переменных (идентификаторов), скобок и операторов естественным образом.
+
+\textbf{Пробельные символы в выражениях на данный момент не поддерживаются!}
+
+Приоритеты и ассоциативность операторов перечислены в таблице
+\\
+
+\begin{tabular}{|c|c|c|c|}
+    \hline
+    \textbf{Оператор} & \textbf{Тип} & \textbf{Приоритет} & \textbf{Ассоциативность} \\
+    \hline
+    \textasciicircum  & Бинарный     & Высший             & Правоассоциативен        \\
+    \hline
+    $-$               & Унарный      &                    &                          \\
+    \hline
+    $*,/$             & Бинарный     &                    & Левоассоциативен         \\
+    \hline
+    $+,-$             & Бинарный     &                    & Левоассоциативен         \\
+    \hline
+    $==,!=,<,>,<=,>=$ & Бинарный     &                    & Не ассоциативен          \\
+    \hline
+    $!$               & Унарный      &                    &                          \\
+    \hline
+    $\&\&$            & Бинарный     &                    & Правоассоциативен        \\
+    \hline
+    $||$              & Бинарный     & Низший             & Правоассоциативен        \\
+    \hline
+\end{tabular}
+\\
+
+Формальная грамматика выражений:
+\begin{gather*}
+    EXPR \to OR\_E\\
+    OR\_E \to AND\_E\ |\ AND\_E\ OR\_OP\ OR\_E,\ OR\_OP \to \textbf{||}\\
+    AND\_E \to NOT\_E\ |\ NOT\_E\ AND\_OP\ NOT\_E,\ AND\_OP \to \textbf{\&\&}\\
+    NOT\_E = NOT\_OP ?\ CMP\_E,\ NOT\_OP \to !\\
+    CMP\_E \to SUM\_E\ |\ SUM\_E\ CMP\_OP\ SUM\_E\\
+    CMP\_OP \to \textbf{==}\ |\ \textbf{!=}\ |\ \textbf{<=}\ |\ \textbf{>=}\ |\
+    \textbf{<}\ |\ \textbf{>}\\
+    SUM\_E \to MUL\_E\ |\ SUM\_E\ SUM\_OP\ MUL\_E,\ SUM\_OP \to \textbf{+}\ |\ \textbf{-}\\
+    MUL\_E \to MINUS\_E\ |\ MUL\_E\ MUL\_OP\ MINUS\_E,\ MUL\_OP \to \textbf{*}\ |\ \textbf{/}\\
+    MINUS\_E \to -? POW\_E
+    POW\_E \to TERM\ |\ TERM\ POW\_OP\ POW\_E,\ POW\_OP \to \textasciicircum\\
+    TERM \to NUM\ |\ IDENT\ |\ LBR\ EXPR\ RBR\\
+    NUM \to 0 | (1..9) (0..9)^*
+\end{gather*}
+\end{document}
