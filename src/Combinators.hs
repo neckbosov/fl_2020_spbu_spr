@@ -53,7 +53,7 @@ instance Applicative (Parser error input) where
 instance Monad (Parser error input) where
   (Parser p) >>= f = Parser $ \input ->
       case p input of
-        Success i r -> runParser (f r) i
+        Success i r -> runParser' (f r) i
         Failure e   -> Failure e
 
 instance Monoid error => Alternative (Parser error input) where

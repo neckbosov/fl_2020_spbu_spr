@@ -19,8 +19,10 @@ data Configuration = Conf { subst :: Subst, input :: [Int], output :: [Int] }
                    deriving (Show, Eq)
 
 data Program = Program { functions :: [Function], main :: LAst }
+    deriving Eq
 
 data Function = Function { name :: String, args :: [Var], funBody :: LAst }
+    deriving Eq
 
 data LAst
   = If { cond :: Expr, thn :: LAst, els :: LAst }
@@ -36,7 +38,7 @@ parseProg :: Parser String String Program
 parseProg = Program <$> many (parseDef <* parseWss) <*> parseL
 
 parseDef :: Parser String String Function
-parseDef = word "fun" *> parseSpaces *>
+parseDef = word "fun" *> parseSpace *>
     (Function <$> parseIdent <* symbol '(' <*> parseArgs <* symbol ')' <* parseWss <*> parseBlock)
     where
         parseArgs = ((:) <$> parseIdent <*> many (symbol ',' *> parseWss *> parseIdent)) <|> success []
@@ -79,7 +81,7 @@ parseWrite :: Parser String String LAst
 parseWrite = word "write" *> fmap Write parseBracketsExpr <* symbol ';'
 
 parseReturn :: Parser String String LAst
-parseReturn = word "return" *> parseWss *> (Return <$> parseExpr)
+parseReturn = word "return" *> parseWss *> (Return <$> parseExpr) <* symbol ';'
 
 parseInstruction :: Parser String String LAst
 parseInstruction = parseAssign <|> parseIf <|> parseWhile <|> parseRead <|> parseWrite <|> parseReturn
