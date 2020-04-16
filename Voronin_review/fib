@@ -1,9 +1,0 @@
-input(n);
-fib0=0;fib1= 1;
-while(n > 0){
-    fib2 = fib0 + fib1;
-    fib0 = fib1;
-    fib1 = fib2;
-    n = n - 1;
-}
-print(fib0)
