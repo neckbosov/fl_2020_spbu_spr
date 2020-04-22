@@ -1,8 +1,8 @@
 module Test.LLang where
 
 import           AST              (AST (..), Operator (..))
-import           Combinators      (Parser (..), Result (..), runParser, symbol,
-                                   toStream, word)
+import           Combinators      (Parser (..), Position (..), Result (..),
+                                   runParser, symbol, toStream, word)
 import qualified Data.Map         as Map
 import           Debug.Trace      (trace)
 import           LLang            (Configuration (..), Function (..), LAst (..),
@@ -29,12 +29,12 @@ import           Text.Printf      (printf)
 --     )
 
 testParseL :: String -> LAst -> Assertion
-testParseL s res = (runParser parseL s @?= Success (toStream "" (length s)) res)
+testParseL s res = let ls = lines s in (runParser parseL s @?= Success (toStream "" (Position (length ls - 1) (length (last ls)))) res)
 
 unit_parseL :: Assertion
 unit_parseL = do
     testParseL "write(1+2);" Seq{statements = [Write (BinOp Plus (Num 1) (Num 2))]}
-    testParseL "" Seq{statements = []}
+    runParser parseL  "" @?= Success (toStream "" (Position 0 0) ) (Seq [])
     testParseL "read(x);" Seq{statements = [Read "x"]}
     testParseL "x =   567^123;" Seq{statements = [Assign "x" (BinOp Pow (Num 567) (Num 123))]}
     testParseL "while(x<22)       \n\
@@ -82,7 +82,7 @@ unit_parseL = do
                         ])
 
 testParseDef :: String -> Function -> Assertion
-testParseDef s f = (runParser parseDef s @?= Success (toStream "" (length s)) f)
+testParseDef s f = let ls = lines s in (runParser parseDef s @?= Success (toStream "" (Position (length ls - 1) (length (last ls)))) f)
 
 unit_parseDef :: Assertion
 unit_parseDef = do
@@ -96,7 +96,7 @@ unit_parseDef = do
         (Seq [Assign "a" (BinOp Plus (Ident "b") (Ident "c"))]) (Num 45))
 
 testParseProg :: String -> Program -> Assertion
-testParseProg s p = (runParser parseProg s @?= Success (toStream "" (length s)) p)
+testParseProg s p = let ls = lines s in (runParser parseProg s @?= Success (toStream "" (Position (length ls - 1) (length (last ls)))) p)
 
 unit_parseProg :: Assertion
 unit_parseProg = do

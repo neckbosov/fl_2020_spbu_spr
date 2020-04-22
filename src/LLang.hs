@@ -2,7 +2,7 @@ module LLang where
 
 import           AST                 (AST (..), Operator (..), Subst (..))
 import           Combinators         (Parser (..), satisfy, success, symbol,
-                                      word)
+                                      word, eof)
 import           Control.Applicative
 import           Control.Monad
 import           Data.List           (intercalate)
@@ -38,7 +38,7 @@ data LAst
   deriving (Eq)
 
 parseProg :: Parser String String Program
-parseProg = Program <$> many (parseDef <* parseWss) <*> parseL
+parseProg = Program <$> many (parseDef <* parseWss) <*> parseL <* parseWss <* eof
 
 parseDef :: Parser String String Function
 parseDef = uncurry <$> parseDeclaration <*> parseDefBlock
