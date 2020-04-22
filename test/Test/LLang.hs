@@ -100,7 +100,7 @@ testParseProg s p = (runParser parseProg s @?= Success (toStream "" (length s)) 
 
 unit_parseProg :: Assertion
 unit_parseProg = do
-    testParseProg "fun sum(a, b) {return a+b;} write(sum(1,2));"
+    testParseProg "fun sum(a, b) {return a+b;} write(sum(1, 2));"
         (Program [Function "sum" ["a", "b"] (Seq []) (BinOp Plus (Ident "a") (Ident "b"))]
             (Seq [Write $ FunctionCall "sum" [Num 1, Num 2]]))
     testParseProg "fun main() {write(1);}"

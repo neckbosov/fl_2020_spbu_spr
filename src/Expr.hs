@@ -71,9 +71,9 @@ parseExpr = uberExpr [
     ] ((Num <$> parseNum) <|> parseFunctionCall <|> (Ident <$> parseIdent) <|> parseBracketsExpr) BinOp UnaryOp
 
 parseFunctionCall :: Parser String String AST
-parseFunctionCall = FunctionCall <$> parseIdent <* symbol '(' <*> parseArgs <* symbol ')'
+parseFunctionCall = FunctionCall <$> parseIdent <*> bracketize parseArgs
     where
-        parseArgs = (((:) <$> parseExpr <*> many (symbol ',' *> parseExpr)) <|> success [])
+        parseArgs = (((:) <$> parseExpr <*> many (wsSurrounded (symbol ',') *> parseExpr)) <|> success [])
 
 parseBracketsExpr :: Parser String String AST
 parseBracketsExpr = bracketize parseExpr
