@@ -1,11 +1,12 @@
 module Expr where
 
 import           AST                 (AST (..), Operator (..), Subst (..))
-import           Combinators         (Parser (..), Result (..), fail', word,
-                                      satisfy, success, symbol, stream, runParser)
+import           Combinators         (Parser (..), Result (..), fail',
+                                      runParser, satisfy, stream, success,
+                                      symbol, word)
 import           Control.Applicative
-import           Data.Char           (digitToInt, isAlpha, isDigit)
-
+import           Data.Char           (digitToInt, isAlpha, isDigit, isAscii)
+import           Util                (parseBracketize)
 data Associativity
   = LeftAssoc  -- 1 @ 2 @ 3 @ 4 = (((1 @ 2) @ 3) @ 4)
   | RightAssoc -- 1 @ 2 @ 3 @ 4 = (1 @ (2 @ (3 @ 4))
@@ -13,9 +14,6 @@ data Associativity
 
 data OpType = Binary Associativity
             | Unary
-
-evalExpr :: Subst -> AST -> Maybe Int
-evalExpr = error "evalExpr undefined"
 
 uberExpr :: Monoid e
          => [(Parser e i op, OpType)] -- список операций с их арностью и, в случае бинарных, ассоциативностью
@@ -76,9 +74,9 @@ parseFunctionCall :: Parser String String AST
 parseFunctionCall = FunctionCall <$> parseIdent <* symbol '(' <*> parseArgs <* symbol ')'
     where
         parseArgs = (((:) <$> parseExpr <*> many (symbol ',' *> parseExpr)) <|> success [])
-        
+
 parseBracketsExpr :: Parser String String AST
-parseBracketsExpr = symbol '(' *> parseExpr <* symbol ')'
+parseBracketsExpr = parseBracketize parseExpr
 
 -- Парсер для целых неотрицательных чисел
 parseNum :: Parser String String Int
@@ -91,10 +89,10 @@ parseNegNum :: Parser String String Int
 parseNegNum = ((\ls x -> x * (-1) ^ length ls) <$> many (symbol '-')) <*> parseNum
 
 identSym :: Parser String String Char
-identSym = satisfy isAlpha <|> symbol '_' <|> satisfy isDigit
+identSym = satisfy (\x -> isAlpha x && isAscii x) <|> symbol '_' <|> satisfy isDigit
 
 parseIdent :: Parser String String String
-parseIdent = (:) <$> (satisfy isAlpha <|> symbol '_') <*> many identSym
+parseIdent = (:) <$> (satisfy (\x -> isAlpha x && isAscii x) <|> symbol '_') <*> many identSym
 
 -- Парсер для операторов
 parseOp :: Parser String String Operator

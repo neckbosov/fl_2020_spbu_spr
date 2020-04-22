@@ -6,8 +6,7 @@ import           Combinators      (Parser (..), Result (..), runParser, symbol,
 import qualified Data.Map         as Map
 import           Debug.Trace      (trace)
 import           LLang            (Configuration (..), Function (..), LAst (..),
-                                   Program (..), eval, initialConf, parseDef,
-                                   parseL, parseProg)
+                                   Program (..), parseDef, parseL, parseProg)
 import           Test.Tasty.HUnit (Assertion, assertBool, (@?=))
 import           Text.Printf      (printf)
 
@@ -87,21 +86,25 @@ testParseDef s f = (runParser parseDef s @?= Success (toStream "" (length s)) f)
 
 unit_parseDef :: Assertion
 unit_parseDef = do
-    testParseDef "fun main() {write(1);}" (Function "main" [] (Seq [Write (Num 1)]))
-    testParseDef "fun sum(a,b) {return a+b;}" (Function "sum" ["a", "b"] (Seq [Return $ BinOp Plus (Ident "a") (Ident "b")]))
+    testParseDef "fun main() {write(1);}" (Function "main" [] (Seq [Write (Num 1)]) (Num 0))
+    testParseDef "fun sum(a,b) {return a+b;}" (Function "sum" ["a", "b"] (Seq [])
+        (BinOp Plus (Ident "a") (Ident "b")))
     testParseDef "fun kek(xxx,    yyy,  \n zzz) {return 0;}"
-        (Function "kek" ["xxx", "yyy", "zzz"] (Seq [Return $ Num 0]))
+        (Function "kek" ["xxx", "yyy", "zzz"] (Seq []) (Num 0))
+    testParseDef "fun kek(a, b, c) {a = b+c; return 45;}"
+        (Function "kek" ["a", "b", "c"]
+        (Seq [Assign "a" (BinOp Plus (Ident "b") (Ident "c"))]) (Num 45))
 
-testParseProg :: String -> Program -> Assertion 
+testParseProg :: String -> Program -> Assertion
 testParseProg s p = (runParser parseProg s @?= Success (toStream "" (length s)) p)
 
 unit_parseProg :: Assertion
 unit_parseProg = do
-    testParseProg "fun sum(a, b) {return a+b;} write(sum(1,2));" 
-        (Program [Function "sum" ["a", "b"] (Seq [Return $ BinOp Plus (Ident "a") (Ident "b")])]
+    testParseProg "fun sum(a, b) {return a+b;} write(sum(1,2));"
+        (Program [Function "sum" ["a", "b"] (Seq []) (BinOp Plus (Ident "a") (Ident "b"))]
             (Seq [Write $ FunctionCall "sum" [Num 1, Num 2]]))
-    testParseProg "fun main() {write(1);}" 
-        (Program [Function "main" [] (Seq [Write (Num 1)])] (Seq []))
+    testParseProg "fun main() {write(1);}"
+        (Program [Function "main" [] (Seq [Write (Num 1)]) (Num 0)] (Seq []))
     testParseProg "read(x);" (Program [] (Seq [Read "x"]))
 -- read x;
 -- if (x > 13)
@@ -112,20 +115,20 @@ unit_parseProg = do
 --       write (x);
 --     }
 -- }
-stmt1 :: LAst
-stmt1 =
-  Seq
-    [ Read "x"
-    , If (BinOp Gt (Ident "x") (Num 13))
-         (Seq [(Write (Ident "x"))])
-         (Seq [(While (BinOp Lt (Ident "x") (Num 42))
-                (Seq [ Assign "x"
-                        (BinOp Mult (Ident "x") (Num 7))
-                     , Write (Ident "x")
-                     ]
-                )
-         )])
-    ]
+-- stmt1 :: LAst
+-- stmt1 =
+--   Seq
+--     [ Read "x"
+--     , If (BinOp Gt (Ident "x") (Num 13))
+--          (Seq [(Write (Ident "x"))])
+--          (Seq [(While (BinOp Lt (Ident "x") (Num 42))
+--                 (Seq [ Assign "x"
+--                         (BinOp Mult (Ident "x") (Num 7))
+--                      , Write (Ident "x")
+--                      ]
+--                 )
+--          )])
+--     ]
 
 -- unit_stmt1 :: Assertion
 -- unit_stmt1 = do
