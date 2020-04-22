@@ -6,7 +6,7 @@ import           Combinators         (Parser (..), Result (..), fail',
                                       symbol, word)
 import           Control.Applicative
 import           Data.Char           (digitToInt, isAlpha, isDigit, isAscii)
-import           Util                (parseBracketize)
+import           Util                (bracketize, wsSurrounded)
 data Associativity
   = LeftAssoc  -- 1 @ 2 @ 3 @ 4 = (((1 @ 2) @ 3) @ 4)
   | RightAssoc -- 1 @ 2 @ 3 @ 4 = (1 @ (2 @ (3 @ 4))
@@ -37,7 +37,7 @@ uberExpr ops elem binaryCreator unaryCreator = foldr f elem ops
         foldAst RightAssoc x = \ls -> snd $ foldr1 (\(o, lhs) (op, rhs) -> (o, binaryCreator op lhs rhs)) ((undefined, x) : ls)
 
 parseCurOp :: String -> Parser String String Operator
-parseCurOp op = word op >>= toOperator
+parseCurOp op = wsSurrounded (word op) >>= toOperator
 
 plus' = parseCurOp "+"
 minus' = parseCurOp "-"
@@ -76,7 +76,7 @@ parseFunctionCall = FunctionCall <$> parseIdent <* symbol '(' <*> parseArgs <* s
         parseArgs = (((:) <$> parseExpr <*> many (symbol ',' *> parseExpr)) <|> success [])
 
 parseBracketsExpr :: Parser String String AST
-parseBracketsExpr = parseBracketize parseExpr
+parseBracketsExpr = bracketize parseExpr
 
 -- Парсер для целых неотрицательных чисел
 parseNum :: Parser String String Int

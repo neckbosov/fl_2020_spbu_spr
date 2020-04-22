@@ -19,8 +19,9 @@ parseSpaces = many parseSpace
 parseWss :: Parser String String String
 parseWss = many parseWs
 
-parseBracketize :: Parser String String output -> Parser String String output
-parseBracketize p = symbol '(' *> parseWss *> p <* parseWss <* symbol ')'
+bracketize :: Parser String String output -> Parser String String output
+bracketize p = symbol '(' *> parseWss *> p <* parseWss <* symbol ')'
 
-packPair :: Functor f => (a, f b) -> f (a,b)
-packPair (x, y) = (\z -> (x, z)) <$> y
+spaceSurrounded p = parseSpaces *> p <* parseSpaces
+
+wsSurrounded p = parseWss *> p <* parseWss

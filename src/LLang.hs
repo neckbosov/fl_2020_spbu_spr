@@ -9,8 +9,9 @@ import           Data.List           (intercalate)
 import qualified Data.Map            as Map
 import           Expr                (parseBracketsExpr, parseExpr, parseIdent)
 import           Text.Printf         (printf)
-import           Util                (parseBracketize, parseSpace, parseSpaces,
-                                      parseWs, parseWss)
+import           Util                (bracketize, parseSpace, parseSpaces,
+                                      parseWs, parseWss, spaceSurrounded,
+                                      wsSurrounded)
 
 type Expr = AST
 
@@ -42,7 +43,7 @@ parseProg = Program <$> many (parseDef <* parseWss) <*> parseL
 parseDef :: Parser String String Function
 parseDef = uncurry <$> parseDeclaration <*> parseDefBlock
     where
-        parseDeclaration = Function <$ word "fun" <* parseSpace <*> parseIdent <*> (parseBracketize parseArgs) <* parseWss
+        parseDeclaration = Function <$ word "fun" <* parseSpace <*> parseIdent <*> (bracketize parseArgs) <* parseWss
         parseArgs = ((:) <$> parseIdent <*> many (symbol ',' *> parseWss *> parseIdent)) <|> success []
 
 parseL :: Parser String String LAst
@@ -55,20 +56,20 @@ parseDefBlock :: Parser String String (LAst, Expr)
 parseDefBlock = (,) <$ symbol '{' <* parseWss <*> parseSeq  <*> (parseReturn <|> success (Num 0)) <* parseWss <* symbol '}'
 
 parseBlock :: Parser String String LAst
-parseBlock = symbol '{' *> parseWss *> parseSeq <* parseWss <* symbol '}'
+parseBlock = symbol '{' *> wsSurrounded parseSeq <* symbol '}'
 
 parseIf :: Parser String String LAst
 parseIf = If <$ word "if" <* parseSpaces <*> parseBracketsExpr <* parseWss <*>
-    parseBlock <*> ((parseWss *> word "else" *> parseWss *> parseBlock) <|> success (Seq []))
+    parseBlock <*> ((wsSurrounded (word "else") *> parseBlock) <|> success (Seq []))
 
 parseWhile :: Parser String String LAst
 parseWhile = While <$ word "while" <* parseSpaces <*> parseBracketsExpr <* parseWss <*> parseBlock
 
 parseAssign :: Parser String String LAst
-parseAssign = Assign <$> parseIdent <* parseSpaces <* symbol '=' <* parseSpaces <*> parseExpr <* symbol ';'
+parseAssign = Assign <$> parseIdent <* spaceSurrounded (symbol '=') <*> parseExpr <* symbol ';'
 
 parseRead :: Parser String String LAst
-parseRead = Read <$ word "read" <*> (parseBracketize parseIdent) <* symbol ';'
+parseRead = Read <$ word "read" <*> (bracketize parseIdent) <* symbol ';'
 
 parseWrite :: Parser String String LAst
 parseWrite = Write <$ word "write" <*> parseBracketsExpr <* symbol ';'
