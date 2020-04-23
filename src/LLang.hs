@@ -59,8 +59,9 @@ parseBlock :: Parser String String LAst
 parseBlock = symbol '{' *> wsSurrounded parseSeq <* symbol '}'
 
 parseIf :: Parser String String LAst
-parseIf = If <$ word "if" <* parseSpaces <*> parseBracketsExpr <* parseWss <*>
-    parseBlock <*> ((wsSurrounded (word "else") *> parseBlock) <|> success (Seq []))
+parseIf = If <$ word "if" <* parseSpaces <*> parseBracketsExpr <* parseWss <*> parseBlock <*> parseElse
+    where
+        parseElse = (wsSurrounded (word "else") *> parseBlock) <|> success (Seq [])
 
 parseWhile :: Parser String String LAst
 parseWhile = While <$ word "while" <* parseSpaces <*> parseBracketsExpr <* parseWss <*> parseBlock

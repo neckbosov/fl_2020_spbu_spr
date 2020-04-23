@@ -40,20 +40,20 @@ doBinOp Gt     = \x y -> fromBool $ x > y
 doBinOp Ge     = \x y -> fromBool $ x >= y
 doBinOp And    = \x y -> fromBool $ toBool x && toBool y
 doBinOp Or     = \x y -> fromBool $ toBool x || toBool y
-doBinOp Not    = undefined
+doBinOp Not    = error "Not isn't binary operator"
 
 evalExpr :: Configuration -> AST -> Maybe (Configuration, Int)
 evalExpr c (Num x)   = return (c, x)
-evalExpr c (Ident x) = (,) <$> return c <*> Map.lookup x (subst c)
+evalExpr c (Ident x) = ((,) c) <$> Map.lookup x (subst c)
 evalExpr c (BinOp Div x y) = do
     (c1, lhs) <- evalExpr c x
     (c2, rhs) <- evalExpr c1 y
-    guard (rhs /= 0)
+    guard $ rhs /= 0
     return (c2, lhs `div` rhs)
 evalExpr c (BinOp Pow x y) = do
     (c1, lhs) <- evalExpr c x
     (c2, rhs) <- evalExpr c1 y
-    guard (rhs >= 0)
+    guard $ rhs >= 0
     return (c2, lhs ^ rhs)
 evalExpr c (BinOp op x y) = do
     (c1, lhs) <- evalExpr c x
@@ -63,7 +63,7 @@ evalExpr c (UnaryOp Minus x) = fmap negate <$> evalExpr c x
 evalExpr c (UnaryOp Not x) = fmap (fromBool . not . toBool) <$> evalExpr c x
 evalExpr c (FunctionCall s exprs) = do
     f <- Map.lookup s (defs c)
-    guard (length (args f) == length exprs)
+    guard $ length (args f) == length exprs
     (nconf, vals) <- foldM (\(c, ls) e -> fmap (: ls) <$> evalExpr c e) (c, []) exprs
     let fconf = nconf {subst = Map.fromList $ zip (args f) (reverse vals)}
     (nnconf, res) <- evalFun fconf (funBody f) (returnExpr f)
@@ -90,6 +90,6 @@ eval (Write e) conf = do
     (nconf, val) <- evalExpr conf e
     return $ nconf {output = val : output nconf}
 eval (Read v) conf = do
-    guard (not $ null (input conf))
+    guard $ (not . null . input) conf
     let nsubst = Map.alter ((const . Just . head . input) conf) v (subst conf)
     return $ conf {subst = nsubst, input = (tail . input) conf}
