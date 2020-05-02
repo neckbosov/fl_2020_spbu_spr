@@ -44,7 +44,7 @@ doBinOp Not    = error "Not isn't binary operator"
 
 evalExpr :: Configuration -> AST -> Maybe (Configuration, Int)
 evalExpr c (Num x)   = return (c, x)
-evalExpr c (Ident x) = ((,) c) <$> Map.lookup x (subst c)
+evalExpr c (Ident x) = (,) c <$> Map.lookup x (subst c)
 evalExpr c (BinOp Div x y) = do
     (c1, lhs) <- evalExpr c x
     (c2, rhs) <- evalExpr c1 y

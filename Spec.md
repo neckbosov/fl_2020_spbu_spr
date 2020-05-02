@@ -24,7 +24,7 @@ INSTRUCTION -> IF | ASSIGN | WHILE | READ | WRITE | RETURN
 
 Формальная грамматика функции:
 
-FUNCTION -> `fun` SPACE IDENT (`(` `)` | `(`IDENT (`,` WS* IDENT)*`)`) BLOCK
+FUNCTION -> `fun` SPACE IDENT (`(` WS*`)` | `(`IDENT (`,` WS* IDENT)*`)`) BLOCK
 
 (моноширинным шрифтом указываются реальные символы, обычным - нетерминалы)
 
