@@ -12,7 +12,7 @@ import           Data.Char           (isSpace)
 parseTab :: Parser String String Char
 parseTab = Parser $ \(InputStream input pos) ->
   case input of
-    (x:xs) | x == '\t' -> Success (InputStream xs pos {col = col pos + 4}) x
+    (x:xs) | x == '\t' -> Success (InputStream xs pos {col = ((col pos + 4) `div` 4) * 4}) x
     input              -> Failure [makeError "Predicate failed" pos]
 
 parseLineBreak :: Parser String String Char
