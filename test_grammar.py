@@ -1,5 +1,4 @@
 import pytest
-from collections import defaultdict
 
 from grammar import parse
 
@@ -35,8 +34,7 @@ def test_syntax_error():
 
 
 def test_multiple_terms():
-    s = '''S -> "a", S, "b"
-    '''
+    s = '''S -> "a", S, "b"'''
     terms, nonterms, rules, syntax_error = parse(s)
     assert not syntax_error
     assert terms == {'a', 'b'}

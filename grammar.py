@@ -6,7 +6,7 @@ tokens = (
     'NONTERM',
     'TO',
     'COMMA',
-    'NEWLINE'
+    'NEWLINES'
 )
 
 t_TO = r'->'
@@ -15,8 +15,8 @@ t_TERM = r'\"[^\"]*\"'
 t_COMMA = r','
 
 
-def t_NEWLINE(t):
-    r'(\n)+'
+def t_NEWLINES(t):
+    r"""(\n)+"""
     t.lexer.lineno += t.value.count('\n')
     return t
 
@@ -37,33 +37,39 @@ rules = defaultdict(list)
 
 
 def p_rule_one(p):
-    """rule : NONTERM TO rhs NEWLINE"""
+    """rule : NONTERM TO rhs"""
+    nonterms.add(p[1])
+    rules[p[1]].append(p[3])
+
+
+def p_rule_one_newlines(p):
+    """rule : NONTERM TO rhs NEWLINES"""
     nonterms.add(p[1])
     rules[p[1]].append(p[3])
 
 
 def p_rule_many(p):
-    """rule : NONTERM TO rhs NEWLINE rule"""
+    """rule : NONTERM TO rhs NEWLINES rule"""
     nonterms.add(p[1])
     rules[p[1]].append(p[3])
 
 
 def p_rhs_term_one(p):
-    'rhs : TERM'
+    """rhs : TERM"""
     terms.add(p[1][1:-1])
     p[0] = []
     p[0].append(p[1])
 
 
 def p_rhs_nonterm_one(p):
-    'rhs : NONTERM'
+    """rhs : NONTERM"""
     nonterms.add(p[1])
     p[0] = []
     p[0].append(p[1])
 
 
 def p_rhs_term_many(p):
-    'rhs : rhs COMMA TERM'
+    """rhs : rhs COMMA TERM"""
     terms.add(p[3][1:-1])
     p[0] = p[1].copy()
     p[0].append(p[3])
