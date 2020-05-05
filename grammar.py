@@ -36,6 +36,11 @@ nonterms = set()
 rules = defaultdict(list)
 
 
+def add_term(term):
+    for c in term:
+        terms.add(c)
+
+
 def p_rule_one(p):
     """rule : NONTERM TO rhs"""
     nonterms.add(p[1])
@@ -56,7 +61,7 @@ def p_rule_many(p):
 
 def p_rhs_term_one(p):
     """rhs : TERM"""
-    terms.add(p[1][1:-1])
+    add_term(p[1][1:-1])
     p[0] = []
     p[0].append(p[1])
 
@@ -70,7 +75,7 @@ def p_rhs_nonterm_one(p):
 
 def p_rhs_term_many(p):
     """rhs : rhs COMMA TERM"""
-    terms.add(p[3][1:-1])
+    add_term(p[3][1:-1])
     p[0] = p[1].copy()
     p[0].append(p[3])
 
