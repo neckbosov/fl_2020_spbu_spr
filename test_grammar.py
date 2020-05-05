@@ -34,5 +34,15 @@ def test_syntax_error():
     assert syntax_error
 
 
+def test_multiple_terms():
+    s = '''S -> "a", S, "b"
+    '''
+    terms, nonterms, rules, syntax_error = parse(s)
+    assert not syntax_error
+    assert terms == {'a', 'b'}
+    assert nonterms == {'S'}
+    assert rules == {'S': [['\"a\"', 'S', '\"b\"']]}
+
+
 if __name__ == '__main__':
     pytest.main()

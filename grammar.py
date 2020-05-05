@@ -11,7 +11,7 @@ tokens = (
 
 t_TO = r'->'
 t_NONTERM = r'[A-Z]+'
-t_TERM = r'\".*\"'
+t_TERM = r'\"[^\"]*\"'
 t_COMMA = r','
 
 
@@ -39,14 +39,12 @@ rules = defaultdict(list)
 def p_rule_one(p):
     """rule : NONTERM TO rhs NEWLINE"""
     nonterms.add(p[1])
-    print(nonterms)
     rules[p[1]].append(p[3])
 
 
 def p_rule_many(p):
     """rule : NONTERM TO rhs NEWLINE rule"""
     nonterms.add(p[1])
-    # print(nonterms)
     rules[p[1]].append(p[3])
 
 
